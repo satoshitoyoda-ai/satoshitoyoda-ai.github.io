@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>Draw With Me! 🎨</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+  :root{
+    --paper:#FFF7F2;
+    --card:#FFFFFF;
+    --ink:#5B4A43;
+    --ink-soft:#9C8A82;
+    --pink:#FF7BAC;
+    --pink-deep:#F45B93;
+    --blue:#7EC8E3;
+    --yellow:#FFD670;
+    --mint:#A8E6CF;
+    --lav:#CDB4F0;
+    --guide:#FF9EC4;
+    --guide-done:#E3D7D1;
+    --shadow:0 6px 0 rgba(91,74,67,.10);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Chalkboard SE","Comic Sans MS","Comic Neue","Segoe UI",sans-serif;
+    min-height:100vh;
+    overscroll-behavior:none;
+  }
+  button{font-family:inherit; color:inherit; border:none; cursor:pointer; background:none; padding:0;}
+  .screen{display:none; min-height:100vh;}
+  .screen.active{display:flex; flex-direction:column;}
+
+  /* ---------- HOME ---------- */
+  #home{align-items:center; padding:24px 16px 48px;}
+  .home-title{
+    font-size:clamp(34px,7vw,54px);
+    margin:18px 0 2px;
+    color:var(--pink-deep);
+    text-align:center;
+    letter-spacing:1px;
+    text-wrap:balance;
+  }
+  .home-sub{color:var(--ink-soft); font-size:clamp(15px,3vw,19px); margin:0 0 26px; text-align:center;}
+  .card-grid{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    width:100%;
+    max-width:720px;
+  }
+  .cat-title{
+    font-size:clamp(19px,4vw,24px);
+    color:var(--ink);
+    margin:14px 4px 2px;
+  }
+  .cat-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:14px;
+  }
+  .lesson-card{
+    background:var(--card);
+    border:3px solid #FFE1EC;
+    border-radius:26px;
+    box-shadow:var(--shadow);
+    padding:18px 10px 14px;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    transition:transform .12s ease;
+  }
+  .lesson-card:active{transform:scale(.95);}
+  .lesson-card .emoji{font-size:52px; line-height:1;}
+  .lesson-card .name{font-size:19px;}
+  .lesson-card .steps{font-size:13px; color:var(--ink-soft);}
+  .lesson-card.free{border-color:#D6EFF9;}
+  .home-actions{margin-top:26px; display:flex; gap:14px; flex-wrap:wrap; justify-content:center;}
+  .big-btn{
+    background:var(--blue);
+    color:#fff;
+    font-size:19px;
+    padding:14px 26px;
+    border-radius:999px;
+    box-shadow:0 5px 0 rgba(91,74,67,.15);
+  }
+  .big-btn:active{transform:translateY(3px); box-shadow:0 2px 0 rgba(91,74,67,.15);}
+  .big-btn.pink{background:var(--pink);}
+
+  /* ---------- DRAW ---------- */
+  #draw{padding:10px 10px 16px; align-items:center; gap:10px;}
+  .draw-top{
+    width:100%; max-width:560px;
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+  }
+  .icon-btn{
+    background:var(--card);
+    border:3px solid #FFE1EC;
+    border-radius:18px;
+    box-shadow:var(--shadow);
+    font-size:24px;
+    width:54px; height:54px;
+    display:flex; align-items:center; justify-content:center;
+    flex:none;
+  }
+  .icon-btn:active{transform:scale(.92);}
+  .icon-btn.selected{border-color:var(--pink); background:#FFF0F6;}
+  .draw-title{font-size:clamp(20px,4.5vw,26px); text-align:center; flex:1;}
+  .tip{
+    width:100%; max-width:560px;
+    background:#FFF0D6;
+    border:3px solid #FFE0A3;
+    border-radius:18px;
+    padding:10px 16px;
+    font-size:clamp(15px,3.4vw,18px);
+    text-align:center;
+    min-height:48px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .canvas-wrap{
+    position:relative;
+    width:min(92vw,480px);
+    aspect-ratio:1/1;
+    background:#fff;
+    border:4px solid #FFD1E3;
+    border-radius:24px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    touch-action:none;
+  }
+  .canvas-wrap canvas{position:absolute; inset:0; width:100%; height:100%;}
+  #inkCanvas{touch-action:none;}
+  .progress{display:flex; gap:8px; align-items:center; justify-content:center;}
+  .dot{width:14px; height:14px; border-radius:50%; background:#EBDDD6; transition:background .2s;}
+  .dot.done{background:var(--mint);}
+  .dot.now{background:var(--pink); transform:scale(1.25);}
+  .step-nav{display:flex; gap:12px; align-items:center; width:100%; max-width:560px; justify-content:center;}
+  .nav-btn{
+    background:var(--pink);
+    color:#fff;
+    font-size:20px;
+    padding:13px 28px;
+    border-radius:999px;
+    box-shadow:0 5px 0 rgba(91,74,67,.15);
+  }
+  .nav-btn:active{transform:translateY(3px); box-shadow:0 2px 0 rgba(91,74,67,.15);}
+  .nav-btn.ghost{background:var(--card); color:var(--ink); border:3px solid #EBDDD6; box-shadow:var(--shadow);}
+  .nav-btn:disabled{opacity:.35;}
+  .toolbar{
+    width:100%; max-width:560px;
+    display:flex; flex-wrap:wrap; gap:8px;
+    justify-content:center; align-items:center;
+  }
+  .swatch{
+    width:44px; height:44px; border-radius:50%;
+    border:3px solid rgba(91,74,67,.15);
+    flex:none;
+  }
+  .swatch.selected{border-color:var(--ink); transform:scale(1.15);}
+  .brush-btn{
+    width:48px; height:48px; border-radius:16px;
+    background:var(--card); border:3px solid #EBDDD6;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .brush-btn.selected{border-color:var(--pink); background:#FFF0F6;}
+  .brush-dot{border-radius:50%; background:var(--ink);}
+  .mode-row{display:flex; gap:8px; justify-content:center; flex-wrap:wrap;}
+  .mode-chip{
+    background:var(--card); border:3px solid #EBDDD6;
+    border-radius:999px; padding:8px 16px; font-size:15px;
+  }
+  .mode-chip.selected{border-color:var(--blue); background:#EAF7FC;}
+
+  /* ---------- GALLERY ---------- */
+  #gallery{padding:24px 16px 48px; align-items:center;}
+  .gal-grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    gap:14px; width:100%; max-width:720px; margin-top:20px;
+  }
+  .gal-item{
+    background:var(--card); border:3px solid #FFE1EC; border-radius:20px;
+    box-shadow:var(--shadow); overflow:hidden; position:relative;
+  }
+  .gal-item img{width:100%; display:block; aspect-ratio:1/1; object-fit:cover;}
+  .gal-item .cap{font-size:13px; text-align:center; padding:6px 4px; color:var(--ink-soft);}
+  .gal-item .del{
+    position:absolute; top:6px; right:6px;
+    background:#fff; border-radius:50%; width:32px; height:32px;
+    font-size:16px; box-shadow:0 2px 4px rgba(0,0,0,.15);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .gal-empty{color:var(--ink-soft); font-size:17px; margin-top:40px; text-align:center;}
+
+  /* ---------- CELEBRATION ---------- */
+  #party{
+    position:fixed; inset:0; display:none;
+    align-items:center; justify-content:center;
+    background:rgba(91,74,67,.35);
+    z-index:50;
+  }
+  #party.show{display:flex;}
+  .party-card{
+    background:var(--card); border-radius:30px; padding:26px 22px;
+    max-width:340px; width:88%;
+    text-align:center; box-shadow:0 12px 40px rgba(0,0,0,.2);
+    animation:pop .35s ease;
+  }
+  @keyframes pop{from{transform:scale(.7); opacity:0;} to{transform:scale(1); opacity:1;}}
+  .party-card h2{margin:0 0 8px; color:var(--pink-deep); font-size:30px;}
+  .party-card img{width:100%; border-radius:18px; border:3px solid #FFE1EC; margin:8px 0 14px;}
+  .confetti{position:fixed; top:-20px; font-size:26px; z-index:60; pointer-events:none; animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg);}}
+  @media (prefers-reduced-motion: reduce){
+    .confetti{display:none;}
+    .party-card{animation:none;}
+  }
+</style>
+
+<!-- ================= HOME ================= -->
+<div class="screen active" id="home">
+  <h1 class="home-title">Draw With Me! 🎨</h1>
+  <p class="home-sub">Pick a friend and let's draw, step by step!</p>
+  <div class="card-grid" id="cardGrid"></div>
+  <div class="home-actions">
+    <button class="big-btn pink" onclick="openGallery()">🖼️ My Gallery</button>
+  </div>
+</div>
+
+<!-- ================= DRAW ================= -->
+<div class="screen" id="draw">
+  <div class="draw-top">
+    <button class="icon-btn" onclick="goHome()" aria-label="Home">🏠</button>
+    <div class="draw-title" id="drawTitle">Kitty</div>
+    <button class="icon-btn" id="peekBtn" aria-label="Peek at the guide">👀</button>
+  </div>
+  <div class="tip" id="tipBox"></div>
+  <div class="canvas-wrap" id="canvasWrap">
+    <canvas id="guideCanvas"></canvas>
+    <canvas id="inkCanvas"></canvas>
+  </div>
+  <div class="progress" id="progress"></div>
+  <div class="step-nav">
+    <button class="nav-btn ghost" id="backBtn" onclick="prevStep()">⬅ Back</button>
+    <button class="nav-btn" id="nextBtn" onclick="nextStep()">Next ➡</button>
+  </div>
+  <div class="toolbar" id="colorBar"></div>
+  <div class="toolbar">
+    <button class="brush-btn" data-size="4" aria-label="Thin brush"><span class="brush-dot" style="width:6px;height:6px"></span></button>
+    <button class="brush-btn selected" data-size="8" aria-label="Medium brush"><span class="brush-dot" style="width:12px;height:12px"></span></button>
+    <button class="brush-btn" data-size="16" aria-label="Thick brush"><span class="brush-dot" style="width:20px;height:20px"></span></button>
+    <button class="icon-btn" id="eraserBtn" aria-label="Eraser">🧽</button>
+    <button class="icon-btn" onclick="undo()" aria-label="Undo">↩️</button>
+    <button class="icon-btn" onclick="clearInk()" aria-label="Start over">🗑️</button>
+  </div>
+  <div class="mode-row" id="modeRow">
+    <button class="mode-chip selected" data-mode="trace">✏️ Trace</button>
+    <button class="mode-chip" data-mode="hint">🌸 Hints</button>
+    <button class="mode-chip" data-mode="memory">🌟 From memory</button>
+  </div>
+</div>
+
+<!-- ================= GALLERY ================= -->
+<div class="screen" id="gallery">
+  <h1 class="home-title">My Gallery 🖼️</h1>
+  <button class="big-btn" onclick="goHome()">🏠 Home</button>
+  <div class="gal-grid" id="galGrid"></div>
+  <p class="gal-empty" id="galEmpty">No drawings yet — go make your first masterpiece!</p>
+</div>
+
+<!-- ================= PARTY ================= -->
+<div id="party">
+  <div class="party-card">
+    <h2 id="partyTitle">You did it! 🎉</h2>
+    <img id="partyImg" alt="Your finished drawing">
+    <p style="margin:0 0 14px; color:var(--ink-soft);">Saved to your gallery!</p>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button class="big-btn pink" onclick="closeParty(); goHome();">🏠 Home</button>
+      <button class="big-btn" onclick="closeParty(); restartLesson();">🔁 Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ============================================================
+   LESSONS — every drawing is a list of steps.
+   Each step: { tip, paths: [SVG path strings in 400x400 space] }
+   ============================================================ */
+const LESSONS = [
+  {
+    id:'kitty', name:'Kitty', emoji:'🐱',
+    steps:[
+      { tip:'Draw a big round head — like a wide egg!',
+        paths:['M 75 215 A 125 100 0 1 1 325 215 A 125 100 0 1 1 75 215'] },
+      { tip:'Two pointy ears on top!',
+        paths:['M 108 148 L 88 58 L 172 112','M 292 148 L 312 58 L 228 112'] },
+      { tip:'Oval eyes, a little nose and a smile!',
+        paths:['M 145 205 A 10 14 0 1 1 165 205 A 10 14 0 1 1 145 205',
+               'M 235 205 A 10 14 0 1 1 255 205 A 10 14 0 1 1 235 205',
+               'M 192 230 L 208 230 L 200 241 L 192 230',
+               'M 185 252 Q 192 260 200 252 Q 208 260 215 252'] },
+      { tip:'Whiskers! Three on each side.',
+        paths:['M 45 195 L 100 205','M 45 222 L 100 222','M 48 248 L 100 239',
+               'M 355 195 L 300 205','M 355 222 L 300 222','M 352 248 L 300 239'] },
+      { tip:'Rosy cheeks and a cute bow!',
+        paths:['M 112 245 A 13 8 0 1 1 138 245 A 13 8 0 1 1 112 245',
+               'M 262 245 A 13 8 0 1 1 288 245 A 13 8 0 1 1 262 245',
+               'M 298 72 A 8 8 0 1 1 314 72 A 8 8 0 1 1 298 72',
+               'M 298 70 Q 268 48 274 84 Q 282 96 298 80',
+               'M 314 70 Q 344 48 338 84 Q 330 96 314 80'] },
+    ]
+  },
+  {
+    id:'bunny', name:'Bunny', emoji:'🐰',
+    steps:[
+      { tip:'Draw a big round head!',
+        paths:['M 105 240 A 95 95 0 1 1 295 240 A 95 95 0 1 1 105 240'] },
+      { tip:'Two looong ears — like tall balloons!',
+        paths:['M 123 105 A 32 75 0 1 1 187 105 A 32 75 0 1 1 123 105',
+               'M 213 105 A 32 75 0 1 1 277 105 A 32 75 0 1 1 213 105',
+               'M 141 108 A 15 48 0 1 1 171 108 A 15 48 0 1 1 141 108',
+               'M 229 108 A 15 48 0 1 1 259 108 A 15 48 0 1 1 229 108'] },
+      { tip:'Dot eyes, a tiny nose and a bunny mouth!',
+        paths:['M 152 232 A 9 9 0 1 1 170 232 A 9 9 0 1 1 152 232',
+               'M 230 232 A 9 9 0 1 1 248 232 A 9 9 0 1 1 230 232',
+               'M 193 256 A 8 6 0 1 1 209 256 A 8 6 0 1 1 193 256',
+               'M 200 262 L 200 274',
+               'M 200 274 Q 190 284 182 274','M 200 274 Q 210 284 218 274'] },
+      { tip:'Two big front teeth and rosy cheeks!',
+        paths:['M 190 280 L 210 280 L 210 297 L 190 297 L 190 280','M 200 280 L 200 297',
+               'M 113 265 A 12 7 0 1 1 137 265 A 12 7 0 1 1 113 265',
+               'M 263 265 A 12 7 0 1 1 287 265 A 12 7 0 1 1 263 265'] },
+      { tip:'Two little round paws under the chin!',
+        paths:['M 132 345 A 28 18 0 1 1 188 345 A 28 18 0 1 1 132 345',
+               'M 212 345 A 28 18 0 1 1 268 345 A 28 18 0 1 1 212 345'] },
+    ]
+  },
+  {
+    id:'bear', name:'Bear', emoji:'🐻',
+    steps:[
+      { tip:'Draw a big round head!',
+        paths:['M 100 230 A 100 100 0 1 1 300 230 A 100 100 0 1 1 100 230'] },
+      { tip:'Two round ears — with little circles inside!',
+        paths:['M 85 140 A 30 30 0 1 1 145 140 A 30 30 0 1 1 85 140',
+               'M 255 140 A 30 30 0 1 1 315 140 A 30 30 0 1 1 255 140',
+               'M 100 140 A 15 15 0 1 1 130 140 A 15 15 0 1 1 100 140',
+               'M 270 140 A 15 15 0 1 1 300 140 A 15 15 0 1 1 270 140'] },
+      { tip:'A big oval snout in the middle!',
+        paths:['M 155 265 A 45 33 0 1 1 245 265 A 45 33 0 1 1 155 265'] },
+      { tip:'Dot eyes, a nose, and a smiley mouth!',
+        paths:['M 151 212 A 9 9 0 1 1 169 212 A 9 9 0 1 1 151 212',
+               'M 231 212 A 9 9 0 1 1 249 212 A 9 9 0 1 1 231 212',
+               'M 190 250 A 10 7 0 1 1 210 250 A 10 7 0 1 1 190 250',
+               'M 200 257 L 200 268',
+               'M 200 268 Q 190 278 182 268','M 200 268 Q 210 278 218 268'] },
+      { tip:'Rosy cheeks for a happy bear!',
+        paths:['M 113 255 A 12 7 0 1 1 137 255 A 12 7 0 1 1 113 255',
+               'M 263 255 A 12 7 0 1 1 287 255 A 12 7 0 1 1 263 255'] },
+    ]
+  },
+  {
+    id:'penguin', name:'Penguin', emoji:'🐧',
+    steps:[
+      { tip:'Draw a big egg shape — that\'s the body!',
+        paths:['M 90 220 A 110 140 0 1 1 310 220 A 110 140 0 1 1 90 220'] },
+      { tip:'A smaller egg inside for the fluffy tummy!',
+        paths:['M 130 270 A 70 80 0 1 1 270 270 A 70 80 0 1 1 130 270'] },
+      { tip:'Round eyes and a little diamond beak!',
+        paths:['M 150 148 A 10 10 0 1 1 170 148 A 10 10 0 1 1 150 148',
+               'M 230 148 A 10 10 0 1 1 250 148 A 10 10 0 1 1 230 148',
+               'M 185 172 L 200 161 L 215 172 L 200 185 L 185 172'] },
+      { tip:'Two flippy wings on the sides!',
+        paths:['M 98 175 Q 40 245 90 310','M 302 175 Q 360 245 310 310'] },
+      { tip:'Little feet and rosy cheeks!',
+        paths:['M 130 358 Q 152 384 176 360','M 224 360 Q 248 384 270 358',
+               'M 123 195 A 12 7 0 1 1 147 195 A 12 7 0 1 1 123 195',
+               'M 253 195 A 12 7 0 1 1 277 195 A 12 7 0 1 1 253 195'] },
+    ]
+  },
+  {
+    id:'puppy', name:'Puppy', emoji:'🐶',
+    steps:[
+      { tip:'Draw a big round head!',
+        paths:['M 100 225 A 100 100 0 1 1 300 225 A 100 100 0 1 1 100 225'] },
+      { tip:'Two floppy ears hanging down!',
+        paths:['M 124 150 Q 52 172 80 268 Q 95 292 126 272 Q 108 215 124 150',
+               'M 276 150 Q 348 172 320 268 Q 305 292 274 272 Q 292 215 276 150'] },
+      { tip:'Dot eyes and a big oval nose!',
+        paths:['M 151 210 A 9 9 0 1 1 169 210 A 9 9 0 1 1 151 210',
+               'M 231 210 A 9 9 0 1 1 249 210 A 9 9 0 1 1 231 210',
+               'M 187 245 A 13 9 0 1 1 213 245 A 13 9 0 1 1 187 245'] },
+      { tip:'A happy mouth with a tongue sticking out!',
+        paths:['M 200 254 L 200 266',
+               'M 200 266 Q 190 276 180 266','M 200 266 Q 210 276 220 266',
+               'M 188 272 Q 200 302 212 272'] },
+      { tip:'A spot over one eye and rosy cheeks!',
+        paths:['M 218 210 A 22 22 0 1 1 262 210 A 22 22 0 1 1 218 210',
+               'M 113 252 A 12 7 0 1 1 137 252 A 12 7 0 1 1 113 252',
+               'M 263 252 A 12 7 0 1 1 287 252 A 12 7 0 1 1 263 252'] },
+    ]
+  },
+  {
+    id:'trex', name:'T-Rex', emoji:'🦖', cat:'dino',
+    steps:[
+      { tip:'Draw a big round head!',
+        paths:['M 65 140 A 85 70 0 1 1 235 140 A 85 70 0 1 1 65 140'] },
+      { tip:'A round tummy under the head!',
+        paths:['M 120 260 A 70 75 0 1 1 260 260 A 70 75 0 1 1 120 260'] },
+      { tip:'A long tail that ends in a point!',
+        paths:['M 252 245 Q 330 255 372 300','M 245 315 Q 320 330 372 300'] },
+      { tip:'Two strong legs and tiny little arms!',
+        paths:['M 150 330 L 150 368 Q 150 378 162 378 L 178 378',
+               'M 212 330 L 212 368 Q 212 378 224 378 L 240 378',
+               'M 124 245 Q 104 252 108 268','M 130 275 Q 112 283 118 297'] },
+      { tip:'A happy face with pointy teeth!',
+        paths:['M 108 118 A 10 10 0 1 1 128 118 A 10 10 0 1 1 108 118',
+               'M 80 160 Q 110 182 140 168',
+               'M 98 171 L 104 182 L 110 172','M 118 174 L 124 184 L 130 174',
+               'M 72 138 A 3 3 0 1 1 78 138 A 3 3 0 1 1 72 138'] },
+    ]
+  },
+  {
+    id:'longneck', name:'Long-Neck', emoji:'🦕', cat:'dino',
+    steps:[
+      { tip:'Draw a big oval body!',
+        paths:['M 110 280 A 110 70 0 1 1 330 280 A 110 70 0 1 1 110 280'] },
+      { tip:'A looong neck reaching up to a little head!',
+        paths:['M 130 250 Q 95 160 112 100','M 178 232 Q 140 165 158 102',
+               'M 97 82 A 38 30 0 1 1 173 82 A 38 30 0 1 1 97 82'] },
+      { tip:'A long tail getting thinner and thinner!',
+        paths:['M 318 245 Q 380 255 395 300','M 310 315 Q 360 325 395 300'] },
+      { tip:'Sturdy legs like tree trunks!',
+        paths:['M 150 340 L 150 374 Q 150 382 158 382 L 172 382 Q 180 382 180 374 L 180 342',
+               'M 250 342 L 250 374 Q 250 382 258 382 L 272 382 Q 280 382 280 374 L 280 344'] },
+      { tip:'A dot eye, a smile and cute spots!',
+        paths:['M 120 74 A 7 7 0 1 1 134 74 A 7 7 0 1 1 120 74',
+               'M 103 92 Q 113 100 126 95',
+               'M 191 270 A 9 9 0 1 1 209 270 A 9 9 0 1 1 191 270',
+               'M 238 292 A 7 7 0 1 1 252 292 A 7 7 0 1 1 238 292',
+               'M 162 298 A 6 6 0 1 1 174 298 A 6 6 0 1 1 162 298'] },
+    ]
+  },
+  {
+    id:'stego', name:'Stego', emoji:'🐉', cat:'dino',
+    steps:[
+      { tip:'Draw a big oval body!',
+        paths:['M 80 270 A 120 80 0 1 1 320 270 A 120 80 0 1 1 80 270'] },
+      { tip:'A little head and a pointy tail!',
+        paths:['M 37 300 A 35 25 0 1 1 107 300 A 35 25 0 1 1 37 300',
+               'M 308 235 Q 370 245 388 295','M 300 310 Q 350 322 388 295'] },
+      { tip:'Big triangle plates along the back!',
+        paths:['M 130 218 L 146 166 L 166 208','M 176 202 L 196 146 L 216 196',
+               'M 226 197 L 246 150 L 264 206','M 272 213 L 290 172 L 304 226'] },
+      { tip:'Sturdy legs to stomp around!',
+        paths:['M 140 340 L 140 372 Q 140 380 148 380 L 162 380 Q 170 380 170 372 L 170 342',
+               'M 240 342 L 240 372 Q 240 380 248 380 L 262 380 Q 270 380 270 372 L 270 344'] },
+      { tip:'A smiley face, spots and tail spikes!',
+        paths:['M 56 292 A 6 6 0 1 1 68 292 A 6 6 0 1 1 56 292',
+               'M 42 312 Q 52 320 65 315',
+               'M 344 252 L 356 234 L 364 256','M 362 268 L 376 252 L 382 274',
+               'M 173 280 A 7 7 0 1 1 187 280 A 7 7 0 1 1 173 280',
+               'M 224 300 A 6 6 0 1 1 236 300 A 6 6 0 1 1 224 300'] },
+    ]
+  },
+  {
+    id:'car', name:'Car', emoji:'🚗', cat:'vehicle',
+    steps:[
+      { tip:'Draw the car body — a long rounded box!',
+        paths:['M 50 240 Q 50 228 68 226 L 335 226 Q 352 228 352 242 L 352 272 Q 352 288 334 288 L 68 288 Q 50 288 50 272 L 50 240'] },
+      { tip:'A big dome on top for the roof!',
+        paths:['M 115 226 Q 130 165 200 165 Q 270 165 285 226'] },
+      { tip:'Two round wheels with circles inside!',
+        paths:['M 90 290 A 30 30 0 1 1 150 290 A 30 30 0 1 1 90 290',
+               'M 255 290 A 30 30 0 1 1 315 290 A 30 30 0 1 1 255 290',
+               'M 108 290 A 12 12 0 1 1 132 290 A 12 12 0 1 1 108 290',
+               'M 273 290 A 12 12 0 1 1 297 290 A 12 12 0 1 1 273 290'] },
+      { tip:'Two windows so friends can look out!',
+        paths:['M 138 218 Q 145 182 196 179 L 196 218 L 138 218',
+               'M 206 179 Q 257 182 264 218 L 206 218 L 206 179'] },
+      { tip:'Headlights and a happy face!',
+        paths:['M 62 240 A 8 8 0 1 1 78 240 A 8 8 0 1 1 62 240',
+               'M 324 240 A 8 8 0 1 1 340 240 A 8 8 0 1 1 324 240',
+               'M 172 248 A 7 7 0 1 1 186 248 A 7 7 0 1 1 172 248',
+               'M 218 248 A 7 7 0 1 1 232 248 A 7 7 0 1 1 218 248',
+               'M 188 262 Q 202 272 216 262'] },
+    ]
+  },
+  {
+    id:'train', name:'Train', emoji:'🚂', cat:'vehicle',
+    steps:[
+      { tip:'Draw the long engine body!',
+        paths:['M 55 215 Q 55 205 68 205 L 195 205 L 195 285 L 68 285 Q 55 285 55 272 L 55 215'] },
+      { tip:"The driver's cab with a window!",
+        paths:['M 195 165 L 300 165 L 300 285 L 195 285 L 195 165',
+               'M 185 160 L 310 160',
+               'M 215 185 L 280 185 L 280 232 L 215 232 L 215 185'] },
+      { tip:'A chimney with puffy steam clouds!',
+        paths:['M 85 205 L 85 172 Q 85 162 95 162 L 110 162 Q 120 162 120 172 L 120 205',
+               'M 88 132 A 14 14 0 1 1 116 132 A 14 14 0 1 1 88 132',
+               'M 112 104 A 10 10 0 1 1 132 104 A 10 10 0 1 1 112 104'] },
+      { tip:'Big wheels joined by a rod!',
+        paths:['M 74 300 A 26 26 0 1 1 126 300 A 26 26 0 1 1 74 300',
+               'M 139 300 A 26 26 0 1 1 191 300 A 26 26 0 1 1 139 300',
+               'M 225 298 A 30 30 0 1 1 285 298 A 30 30 0 1 1 225 298',
+               'M 100 300 L 255 298'] },
+      { tip:'A friendly face and a snow plow!',
+        paths:['M 98 232 A 7 7 0 1 1 112 232 A 7 7 0 1 1 98 232',
+               'M 136 232 A 7 7 0 1 1 150 232 A 7 7 0 1 1 136 232',
+               'M 108 250 Q 122 260 140 252',
+               'M 55 285 L 35 315 L 78 315'] },
+    ]
+  },
+  {
+    id:'shinkansen', name:'Shinkansen', emoji:'🚄', cat:'vehicle',
+    steps:[
+      { tip:'A long sleek body with a pointy nose!',
+        paths:['M 30 265 Q 100 218 190 215 L 340 215 Q 360 215 360 232 L 360 268 Q 360 282 344 282 L 48 282 Q 30 282 30 265'] },
+      { tip:'The driver window and a speedy stripe!',
+        paths:['M 96 234 Q 125 223 152 222 L 152 241 Q 120 242 102 246 L 96 234',
+               'M 34 260 L 358 260'] },
+      { tip:'Little windows for the passengers!',
+        paths:['M 185 226 L 207 226 L 207 242 L 185 242 L 185 226',
+               'M 221 226 L 243 226 L 243 242 L 221 242 L 221 226',
+               'M 257 226 L 279 226 L 279 242 L 257 242 L 257 226',
+               'M 293 226 L 315 226 L 315 242 L 293 242 L 293 226'] },
+      { tip:'Wheels underneath and the track!',
+        paths:['M 82 292 A 11 11 0 1 1 104 292 A 11 11 0 1 1 82 292',
+               'M 124 292 A 11 11 0 1 1 146 292 A 11 11 0 1 1 124 292',
+               'M 254 292 A 11 11 0 1 1 276 292 A 11 11 0 1 1 254 292',
+               'M 296 292 A 11 11 0 1 1 318 292 A 11 11 0 1 1 296 292',
+               'M 15 308 L 385 308'] },
+      { tip:'A happy face — and whoosh lines, so fast!',
+        paths:['M 62 246 A 7 7 0 1 1 76 246 A 7 7 0 1 1 62 246',
+               'M 48 262 Q 58 270 72 265',
+               'M 366 226 L 392 226','M 370 244 L 396 244'] },
+    ]
+  },
+  {
+    id:'helicopter', name:'Helicopter', emoji:'🚁', cat:'vehicle',
+    steps:[
+      { tip:'Draw a big egg-shaped body!',
+        paths:['M 85 230 A 95 65 0 1 1 275 230 A 95 65 0 1 1 85 230'] },
+      { tip:'A tail with a little spinny rotor!',
+        paths:['M 268 212 L 352 198','M 272 248 L 352 220',
+               'M 350 200 A 15 15 0 1 1 380 200 A 15 15 0 1 1 350 200',
+               'M 365 185 L 365 215','M 350 200 L 380 200'] },
+      { tip:'The big rotor on top goes whirrr!',
+        paths:['M 180 165 L 180 142','M 55 142 L 305 142',
+               'M 172 142 A 8 8 0 1 1 188 142 A 8 8 0 1 1 172 142'] },
+      { tip:'Landing skids underneath!',
+        paths:['M 140 293 L 130 320','M 222 293 L 232 320',
+               'M 90 322 L 275 322 Q 292 322 298 308'] },
+      { tip:'A window, an eye and a smile!',
+        paths:['M 98 208 Q 125 176 168 173 L 168 214 Q 125 216 104 230 L 98 208',
+               'M 126 196 A 8 8 0 1 1 142 196 A 8 8 0 1 1 126 196',
+               'M 120 252 Q 136 262 152 254',
+               'M 96 246 A 10 6 0 1 1 116 246 A 10 6 0 1 1 96 246'] },
+    ]
+  },
+  {
+    id:'cupcake', name:'Cupcake', emoji:'🧁',
+    steps:[
+      { tip:'Draw the cupcake wrapper — a cup shape!',
+        paths:['M 130 250 L 270 250 L 250 350 L 150 350 L 130 250'] },
+      { tip:'Fluffy frosting on top — with wavy bumps!',
+        paths:['M 125 250 Q 118 160 200 155 Q 282 160 275 250',
+               'M 125 250 Q 145 268 165 250 Q 185 268 205 250 Q 225 268 245 250 Q 260 266 275 250'] },
+      { tip:'A cherry with a stem on the very top!',
+        paths:['M 182 135 A 18 18 0 1 1 218 135 A 18 18 0 1 1 182 135',
+               'M 200 117 Q 205 95 220 90'] },
+      { tip:'Give your cupcake a happy face!',
+        paths:['M 168 213 A 7 7 0 1 1 182 213 A 7 7 0 1 1 168 213',
+               'M 218 213 A 7 7 0 1 1 232 213 A 7 7 0 1 1 218 213',
+               'M 190 226 Q 200 236 210 226',
+               'M 146 226 A 9 6 0 1 1 164 226 A 9 6 0 1 1 146 226',
+               'M 236 226 A 9 6 0 1 1 254 226 A 9 6 0 1 1 236 226'] },
+      { tip:'Sprinkles! Little lines on the wrapper.',
+        paths:['M 160 275 L 172 283','M 205 290 L 195 300','M 232 272 L 242 282',
+               'M 175 320 L 187 326','M 220 318 L 212 330'] },
+    ]
+  },
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const COLORS = ['#3D3D3D','#FF7BAC','#F45B93','#FF9E5E','#FFD670','#8ED081','#7EC8E3','#5C8DE0','#CDB4F0','#B07D62','#FFFFFF'];
+const CANVAS_SIZE = 400;
+let currentLesson = null;   // lesson object or {free:true}
+let stepIndex = 0;
+let mode = 'trace';         // trace | hint | memory
+let strokes = [];           // {color, size, erase, pts:[[x,y]...]}
+let liveStroke = null;
+let brushColor = '#3D3D3D';
+let brushSize = 8;
+let eraser = false;
+let peeking = false;
+
+const guideCanvas = document.getElementById('guideCanvas');
+const inkCanvas = document.getElementById('inkCanvas');
+const gctx = guideCanvas.getContext('2d');
+const ictx = inkCanvas.getContext('2d');
+
+function setupCanvas(cv){
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = CANVAS_SIZE * dpr;
+  cv.height = CANVAS_SIZE * dpr;
+  cv.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+}
+setupCanvas(guideCanvas);
+setupCanvas(inkCanvas);
+
+/* ============================================================
+   SCREENS
+   ============================================================ */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function goHome(){ show('home'); }
+
+/* ---------- home cards (grouped by category) ---------- */
+const CATEGORIES = [
+  { key:'friends', title:'🌸 Cute Friends' },
+  { key:'dino',    title:'🦕 Dinosaurs' },
+  { key:'vehicle', title:'🚗 Things That Go' },
+];
+const grid = document.getElementById('cardGrid');
+function makeCard(L, extraClass){
+  const b = document.createElement('button');
+  b.className = 'lesson-card' + (extraClass ? ' ' + extraClass : '');
+  b.innerHTML = `<span class="emoji">${L.emoji}</span><span class="name">${L.name}</span><span class="steps">${L.free ? 'anything you like!' : L.steps.length + ' steps'}</span>`;
+  b.onclick = ()=>startLesson(L);
+  return b;
+}
+CATEGORIES.forEach(cat=>{
+  const lessons = LESSONS.filter(L=>(L.cat || 'friends') === cat.key);
+  if(!lessons.length) return;
+  const h = document.createElement('div');
+  h.className = 'cat-title';
+  h.textContent = cat.title;
+  grid.appendChild(h);
+  const g = document.createElement('div');
+  g.className = 'cat-grid';
+  lessons.forEach(L=>g.appendChild(makeCard(L)));
+  grid.appendChild(g);
+});
+{
+  const h = document.createElement('div');
+  h.className = 'cat-title';
+  h.textContent = '✏️ Your Turn';
+  grid.appendChild(h);
+  const g = document.createElement('div');
+  g.className = 'cat-grid';
+  g.appendChild(makeCard({free:true, name:'Free Draw', emoji:'✏️', steps:[{tip:'Draw anything you can imagine!', paths:[]}]}, 'free'));
+  grid.appendChild(g);
+}
+
+/* ============================================================
+   LESSON FLOW
+   ============================================================ */
+function startLesson(L){
+  currentLesson = L;
+  stepIndex = 0;
+  strokes = [];
+  document.getElementById('drawTitle').textContent = `${L.emoji} ${L.name}`;
+  document.getElementById('peekBtn').style.display = L.free ? 'none' : 'flex';
+  document.getElementById('modeRow').style.display = L.free ? 'none' : 'flex';
+  show('draw');
+  render();
+}
+function restartLesson(){ if(currentLesson) startLesson(currentLesson); }
+
+function prevStep(){ if(stepIndex>0){ stepIndex--; render(); } }
+function nextStep(){
+  if(stepIndex < currentLesson.steps.length-1){
+    stepIndex++;
+    ding(660);
+    render();
+  } else {
+    finishLesson();
+  }
+}
+
+function render(){
+  const L = currentLesson;
+  document.getElementById('tipBox').textContent = L.steps[stepIndex].tip;
+  // progress dots
+  const prog = document.getElementById('progress');
+  prog.innerHTML = '';
+  L.steps.forEach((_,i)=>{
+    const d = document.createElement('div');
+    d.className = 'dot' + (i<stepIndex?' done':i===stepIndex?' now':'');
+    prog.appendChild(d);
+  });
+  document.getElementById('backBtn').disabled = stepIndex===0;
+  document.getElementById('nextBtn').textContent =
+    (stepIndex === L.steps.length-1) ? (L.free ? '💾 Save' : '⭐ Finish!') : 'Next ➡';
+  drawGuide();
+  drawInk();
+}
+
+/* ---------- guide layer ---------- */
+function drawGuide(){
+  gctx.clearRect(0,0,CANVAS_SIZE,CANVAS_SIZE);
+  const L = currentLesson;
+  if(L.free) return;
+  // earlier steps: soft grey solid
+  gctx.setLineDash([]);
+  gctx.lineWidth = 5;
+  gctx.lineCap = 'round';
+  gctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--guide-done').trim() || '#E3D7D1';
+  for(let i=0;i<stepIndex;i++)
+    L.steps[i].paths.forEach(p=>gctx.stroke(new Path2D(p)));
+  // current step: dashed pink, opacity by mode
+  let alpha = mode==='trace' ? 0.95 : mode==='hint' ? 0.35 : 0;
+  if(peeking) alpha = 0.95;
+  if(alpha>0){
+    gctx.save();
+    gctx.globalAlpha = alpha;
+    gctx.strokeStyle = '#FF7BAC';
+    gctx.lineWidth = 5;
+    gctx.setLineDash([10,8]);
+    L.steps[stepIndex].paths.forEach(p=>gctx.stroke(new Path2D(p)));
+    gctx.restore();
+  }
+}
+
+/* ---------- ink layer ---------- */
+function drawInk(){
+  ictx.clearRect(0,0,CANVAS_SIZE,CANVAS_SIZE);
+  const all = liveStroke ? strokes.concat([liveStroke]) : strokes;
+  for(const s of all){
+    ictx.save();
+    ictx.globalCompositeOperation = s.erase ? 'destination-out' : 'source-over';
+    ictx.strokeStyle = s.color;
+    ictx.lineWidth = s.size;
+    ictx.lineCap = 'round';
+    ictx.lineJoin = 'round';
+    ictx.beginPath();
+    const pts = s.pts;
+    if(pts.length === 1){
+      ictx.arc(pts[0][0], pts[0][1], s.size/2, 0, Math.PI*2);
+      ictx.fillStyle = s.color;
+      ictx.fill();
+    } else {
+      ictx.moveTo(pts[0][0], pts[0][1]);
+      for(let i=1;i<pts.length;i++) ictx.lineTo(pts[i][0], pts[i][1]);
+      ictx.stroke();
+    }
+    ictx.restore();
+  }
+}
+
+/* ---------- pointer input ---------- */
+function canvasPos(e){
+  const r = inkCanvas.getBoundingClientRect();
+  return [ (e.clientX - r.left) / r.width * CANVAS_SIZE,
+           (e.clientY - r.top) / r.height * CANVAS_SIZE ];
+}
+inkCanvas.addEventListener('pointerdown', e=>{
+  e.preventDefault();
+  inkCanvas.setPointerCapture(e.pointerId);
+  liveStroke = { color:brushColor, size:brushSize*(eraser?2.2:1), erase:eraser, pts:[canvasPos(e)] };
+  drawInk();
+});
+inkCanvas.addEventListener('pointermove', e=>{
+  if(!liveStroke) return;
+  e.preventDefault();
+  liveStroke.pts.push(canvasPos(e));
+  drawInk();
+});
+function endStroke(e){
+  if(!liveStroke) return;
+  strokes.push(liveStroke);
+  liveStroke = null;
+  drawInk();
+}
+inkCanvas.addEventListener('pointerup', endStroke);
+inkCanvas.addEventListener('pointercancel', endStroke);
+
+function undo(){ strokes.pop(); drawInk(); }
+function clearInk(){ strokes = []; drawInk(); }
+
+/* ---------- peek (hold) ---------- */
+const peekBtn = document.getElementById('peekBtn');
+['pointerdown'].forEach(ev=>peekBtn.addEventListener(ev, e=>{ e.preventDefault(); peeking = true; drawGuide(); }));
+['pointerup','pointerleave','pointercancel'].forEach(ev=>peekBtn.addEventListener(ev, ()=>{ peeking = false; drawGuide(); }));
+
+/* ---------- toolbar ---------- */
+const colorBar = document.getElementById('colorBar');
+COLORS.forEach(c=>{
+  const b = document.createElement('button');
+  b.className = 'swatch' + (c===brushColor?' selected':'');
+  b.style.background = c;
+  b.setAttribute('aria-label','Color '+c);
+  b.onclick = ()=>{
+    brushColor = c; eraser = false;
+    document.getElementById('eraserBtn').classList.remove('selected');
+    colorBar.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));
+    b.classList.add('selected');
+  };
+  colorBar.appendChild(b);
+});
+document.querySelectorAll('.brush-btn').forEach(b=>{
+  b.onclick = ()=>{
+    brushSize = +b.dataset.size;
+    document.querySelectorAll('.brush-btn').forEach(x=>x.classList.remove('selected'));
+    b.classList.add('selected');
+  };
+});
+document.getElementById('eraserBtn').onclick = function(){
+  eraser = !eraser;
+  this.classList.toggle('selected', eraser);
+};
+document.querySelectorAll('.mode-chip').forEach(b=>{
+  b.onclick = ()=>{
+    mode = b.dataset.mode;
+    document.querySelectorAll('.mode-chip').forEach(x=>x.classList.remove('selected'));
+    b.classList.add('selected');
+    drawGuide();
+  };
+});
+
+/* ============================================================
+   FINISH + GALLERY
+   ============================================================ */
+const GKEY = 'dwm_gallery_v1';
+function loadGallery(){ try{ return JSON.parse(localStorage.getItem(GKEY)) || []; }catch(e){ return []; } }
+function saveGallery(g){ try{ localStorage.setItem(GKEY, JSON.stringify(g)); }catch(e){ /* storage full — drop oldest and retry */ g.shift(); try{ localStorage.setItem(GKEY, JSON.stringify(g)); }catch(e2){} } }
+
+function snapshot(){
+  const out = document.createElement('canvas');
+  out.width = 400; out.height = 400;
+  const c = out.getContext('2d');
+  c.fillStyle = '#ffffff';
+  c.fillRect(0,0,400,400);
+  c.drawImage(inkCanvas, 0,0, 400,400);
+  return out.toDataURL('image/png');
+}
+
+function finishLesson(){
+  const url = snapshot();
+  const g = loadGallery();
+  g.push({ id:Date.now(), name:currentLesson.name, emoji:currentLesson.emoji, url });
+  while(g.length > 40) g.shift();
+  saveGallery(g);
+  document.getElementById('partyImg').src = url;
+  document.getElementById('partyTitle').textContent =
+    currentLesson.free ? 'Beautiful! 🎉' : `Your ${currentLesson.name} is done! 🎉`;
+  document.getElementById('party').classList.add('show');
+  confettiBurst();
+  ding(880); setTimeout(()=>ding(1100),150); setTimeout(()=>ding(1320),300);
+}
+function closeParty(){ document.getElementById('party').classList.remove('show'); }
+
+function openGallery(){
+  const g = loadGallery();
+  const wrap = document.getElementById('galGrid');
+  wrap.innerHTML = '';
+  document.getElementById('galEmpty').style.display = g.length ? 'none' : 'block';
+  [...g].reverse().forEach(item=>{
+    const d = document.createElement('div');
+    d.className = 'gal-item';
+    d.innerHTML = `<img src="${item.url}" alt="${item.name}"><div class="cap">${item.emoji} ${item.name}</div><button class="del" aria-label="Delete">❌</button>`;
+    d.querySelector('.del').onclick = ()=>{
+      if(!confirm('Delete this drawing?')) return;
+      saveGallery(loadGallery().filter(x=>x.id!==item.id));
+      openGallery();
+    };
+    wrap.appendChild(d);
+  });
+  show('gallery');
+}
+
+/* ============================================================
+   FUN: confetti + sounds
+   ============================================================ */
+function confettiBurst(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const glyphs = ['🎉','⭐','💖','🌸','✨','🎈'];
+  for(let i=0;i<24;i++){
+    const s = document.createElement('div');
+    s.className = 'confetti';
+    s.textContent = glyphs[i % glyphs.length];
+    s.style.left = Math.random()*100 + 'vw';
+    s.style.animationDuration = (1.8 + Math.random()*1.6) + 's';
+    s.style.animationDelay = (Math.random()*0.5) + 's';
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(), 4200);
+  }
+}
+let audioCtx = null;
+function ding(freq){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const gnode = audioCtx.createGain();
+    o.type = 'sine'; o.frequency.value = freq;
+    gnode.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    gnode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+    o.connect(gnode); gnode.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + 0.4);
+  }catch(e){}
+}
+
+/* ============================================================
+   DEBUG PREVIEW (#guides) — shows all lessons fully drawn.
+   Handy for parents adding new lessons.
+   ============================================================ */
+if(location.hash === '#guides'){
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const home = document.getElementById('home');
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:720px;width:100%;margin-top:20px;';
+    LESSONS.forEach(L=>{
+      const cv = document.createElement('canvas');
+      cv.width = 400; cv.height = 400;
+      cv.style.cssText = 'width:100%;background:#fff;border:2px solid #FFD1E3;border-radius:14px;';
+      const c = cv.getContext('2d');
+      c.strokeStyle = '#5B4A43'; c.lineWidth = 4; c.lineCap = 'round';
+      L.steps.forEach(s=>s.paths.forEach(p=>c.stroke(new Path2D(p))));
+      wrap.appendChild(cv);
+    });
+    home.appendChild(wrap);
+  });
+}
+</script>
