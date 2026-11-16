@@ -14,7 +14,7 @@ A little forest of homemade games and learning apps for kids. The site is static
 |---|---|
 | `index.html` | Home page: all games with age groups, Japanese / English switch (follows the device language and remembers the choice) |
 | `manifest.json`, `icon-*.png`, `favicon.svg` | Add to Home Screen |
-| `draw-with-me/`, `dino-blaster/`, `sky-patrol/`, `bubble-sniper/`, `nihongo-picnic/`, `math-walk/`, `cupcake/` | One game per folder, each a single `index.html` |
+| `draw-with-me/`, `dino-blaster/`, `sky-patrol/`, `pop-it/`, `bubble-sniper/`, `color-blocks/`, `nihongo-picnic/`, `math-walk/`, `cupcake/` | One game per folder (`index.html`, plus icons and a manifest for some) |
 | `/abc123/`, `/dino-ranger/` | Separate repositories (their own GitHub Pages project sites), linked from the home page |
 
 ## Adding or updating a game
