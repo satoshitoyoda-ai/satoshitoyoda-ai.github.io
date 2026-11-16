@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nihongo Picnic</title>
+<style>
+/* Indigo (藍) and yamabuki (山吹) on a cool paper ground. Quiet surfaces, one strong colour per player. */
+:root{
+  --ground:#F2F4F9; --surface:#FFFFFF; --tint:#F6F7FB; --ink:#12162B; --soft:#676D8C; --line:#E2E6F0;
+  --primary:#2B3A8C; --primary-soft:#E6E9F8; --on-primary:#FFFFFF;
+  --leaf:#1E8E78; --leaf-soft:#DDF2EC;
+  --sun:#E0A21F; --sun-soft:#FBF1D9; --sun-ink:#7A5600;
+  --good:#1C9A68; --good-soft:#DFF4EA; --bad:#D24B62; --bad-soft:#FBE4E8;
+  --shadow:0 1px 2px rgba(18,22,43,.05),0 10px 28px -14px rgba(18,22,43,.22);
+  --ui:"Manrope","Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --jp:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic","Manrope",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0D1020; --surface:#171B2E; --tint:#1E2338; --ink:#EEF0FA; --soft:#9CA2C2; --line:#2A3050;
+  --primary:#8E9CFF; --primary-soft:#232A52; --on-primary:#0D1020;
+  --leaf:#4CC7AE; --leaf-soft:#16362F; --sun:#F2BC45; --sun-soft:#3A2F12; --sun-ink:#F6D58A;
+  --good:#44C792; --good-soft:#143427; --bad:#F0788C; --bad-soft:#3D1A22;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px -16px rgba(0,0,0,.7);
+}}
+:root[data-theme="dark"]{
+  --ground:#0D1020; --surface:#171B2E; --tint:#1E2338; --ink:#EEF0FA; --soft:#9CA2C2; --line:#2A3050;
+  --primary:#8E9CFF; --primary-soft:#232A52; --on-primary:#0D1020;
+  --leaf:#4CC7AE; --leaf-soft:#16362F; --sun:#F2BC45; --sun-soft:#3A2F12; --sun-ink:#F6D58A;
+  --good:#44C792; --good-soft:#143427; --bad:#F0788C; --bad-soft:#3D1A22;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px -16px rgba(0,0,0,.7);
+}
+html,body{height:100%}
+body{background:var(--ground);color:var(--ink);font-family:var(--ui);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
+#app{max-width:720px;margin:0 auto;padding-inline:20px;padding-block:18px 32px;min-height:100%;display:flex;flex-direction:column;gap:20px}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{letter-spacing:-.02em;line-height:1.15;text-wrap:balance}
+.jp{font-family:var(--jp)}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+.num{font-variant-numeric:tabular-nums;font-weight:800}
+
+/* bars */
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.grow{flex:1}
+.pill{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:700;display:inline-flex;gap:8px;align-items:baseline}
+.pill span{color:var(--soft);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.ghost{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 16px;font-weight:700;font-size:14px}
+.ghost:active,.btn:active,.card-btn:active,.opt:active{transform:scale(.98)}
+.combo{color:var(--sun-ink);background:var(--sun-soft);border-radius:999px;padding:4px 12px;font-weight:800;font-size:13px}
+
+/* home */
+.hero{display:flex;flex-direction:column;gap:6px;padding-top:8px}
+.hero h1{font-size:clamp(34px,8vw,48px);font-weight:800}
+.hero h1 .jp{font-weight:900;color:var(--primary)}
+.hero p{color:var(--soft);font-weight:600;max-width:40ch}
+.stack{display:flex;flex-direction:column;gap:12px}
+.card-btn{background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:18px;display:grid;grid-template-columns:auto 1fr auto;gap:2px 16px;align-items:center;text-align:left;transition:transform .08s}
+.fam{cursor:default}.fam:active{transform:none}
+.lvrow{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.lv{flex:1 1 42px;min-width:42px;border:1px solid var(--line);background:var(--tint);border-radius:14px;padding:8px 4px;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:transform .08s}
+.lv b{font-size:19px;font-weight:800;line-height:1.1}
+.lv .stars{font-size:11px;letter-spacing:0}
+.lv:active{transform:scale(.96)}
+.lv[disabled]{opacity:.5;cursor:default}
+.card-btn[disabled]{opacity:.55;cursor:default;box-shadow:none}
+.ic{font-weight:800}
+.avatar{grid-row:span 2;width:60px;height:60px;border-radius:50%;display:grid;place-items:center;font-size:32px;line-height:1}
+.avatar.big{background:var(--primary-soft)} .avatar.little{background:var(--leaf-soft)}
+.card-btn .nm{font-size:20px;font-weight:800;letter-spacing:-.01em}
+.card-btn .meta{color:var(--soft);font-weight:600;font-size:14px;grid-column:2}
+.card-btn .side{grid-row:span 2;grid-column:3;text-align:right}
+.card-btn .side .num{font-size:22px;display:block;line-height:1.1}
+.foot{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.textlink{font-weight:700;color:var(--primary);padding:6px 0;text-align:left}
+.sync{font-size:13px;font-weight:600;color:var(--soft);display:inline-flex;gap:8px;align-items:center}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--soft)}
+.sync.on i{background:var(--good)}
+
+.weeks{display:flex;gap:8px}
+.wk{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:10px 14px;text-align:left;display:flex;flex-direction:column;gap:0;transition:transform .08s}
+.wk small{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+.wk b{font-size:17px;font-weight:900}
+.wk.on{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.wk.on small{color:var(--on-primary);opacity:.8}
+.wk:active{transform:scale(.98)}
+/* hub */
+.hub h2{font-size:28px;font-weight:800}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.tile{grid-template-columns:auto 1fr auto}
+.ic{grid-row:span 2;width:52px;height:52px;border-radius:16px;background:var(--tint);display:grid;place-items:center;font-size:26px;line-height:1}
+.tile .t{font-family:var(--jp);font-weight:900;font-size:18px}
+.tile .d{color:var(--soft);font-size:13px;font-weight:600;grid-column:2}
+.tile .side small{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);font-weight:700}
+.stars{color:var(--sun);letter-spacing:1px;font-size:13px}
+.mission{background:var(--sun-soft);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.mission .eyebrow{color:var(--sun-ink)}
+.mission h3{font-family:var(--jp);font-weight:900;font-size:20px}
+.mission ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:15px}
+.mission .ghost{align-self:flex-start;background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.mission .ghost[disabled]{background:var(--good);border-color:var(--good);color:#fff;cursor:default}
+
+/* game */
+.track{display:flex;gap:4px;flex:1;min-width:120px}
+.track i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.track i.ok{background:var(--good)} .track i.meh{background:var(--sun)} .track i.now{background:var(--primary)}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow);padding:24px 20px;display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+.speaker{width:96px;height:96px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;box-shadow:0 0 0 10px var(--primary-soft)}
+.speaker svg{width:40px;height:40px}
+.speaker.playing{animation:halo 1s ease-in-out infinite alternate}
+.speaker.nudge{animation:halo .6s ease-in-out infinite alternate;background:var(--sun);color:#12162B}
+@keyframes halo{to{box-shadow:0 0 0 18px var(--primary-soft)}}
+.hintline{font-weight:600;color:var(--soft);min-height:1.5em;font-size:15px}
+.reveal{font-family:var(--jp);font-size:24px;font-weight:900}
+.reveal small{display:block;font-family:var(--ui);font-size:14px;color:var(--soft);font-weight:600;margin-top:2px}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%}
+.opt{background:var(--tint);border:1.5px solid var(--line);border-radius:22px;min-height:120px;font-size:clamp(40px,11vw,60px);line-height:1.1;padding:8px;display:grid;place-items:center;word-break:break-all;transition:transform .08s,background .15s,border-color .15s}
+.opt.multi{font-size:clamp(28px,8vw,44px)}
+.opt.right{background:var(--good-soft);border-color:var(--good)}
+.opt.wrong{background:var(--bad-soft);border-color:transparent;opacity:.45;animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.opts.six{grid-template-columns:repeat(3,1fr)}
+.opts.six .opt{min-height:96px;font-size:clamp(32px,9vw,52px)}
+.plus{font-size:.5em;color:var(--soft);padding:0 6px}
+.opts.text{grid-template-columns:1fr}
+.opt.txt{font-family:var(--jp);font-weight:900;font-size:clamp(17px,4.6vw,22px);line-height:1.45;min-height:76px;padding:10px 14px;word-break:keep-all}
+.basket{width:100%;min-height:96px;border:2px dashed var(--line);border-radius:22px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px;padding:10px;font-size:clamp(30px,8vw,44px);line-height:1.1;word-break:break-all}
+.basket .empty{opacity:.4}
+.basket.right{border-style:solid;border-color:var(--good);background:var(--good-soft)}
+.basket.wrong{border-color:var(--bad);background:var(--bad-soft);animation:shake .3s}
+.shelf{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%}
+.shelfitem{background:var(--tint);border:1.5px solid var(--line);border-radius:18px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;transition:transform .08s}
+.shelfitem span{font-size:clamp(34px,9vw,48px);line-height:1.1} .shelfitem small{font-size:12px;font-weight:800;color:var(--soft)}
+.shelfitem:active{transform:scale(.94)}
+.clue[disabled]{opacity:.55} .speaker[disabled]{opacity:.35}
+.clue em{font-style:normal;font-weight:800;font-family:var(--jp);color:var(--soft)}
+.micbtn{width:104px;height:104px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;box-shadow:0 0 0 10px var(--primary-soft);transition:transform .08s}
+.micbtn svg{width:44px;height:44px}
+.micbtn:active{transform:scale(.96)}
+.micbtn.live{background:var(--bad);box-shadow:0 0 0 10px var(--bad-soft);animation:livemic .7s ease-in-out infinite alternate}
+@keyframes livemic{to{box-shadow:0 0 0 20px var(--bad-soft)}}
+.heard{font-weight:700;color:var(--soft);font-size:15px}
+.passmsg{color:var(--good);font-weight:900;font-size:24px}
+.avatar.team{background:var(--sun-soft)}
+.role{align-self:stretch;text-align:left;font-weight:800;font-size:15px;border-radius:12px;padding:8px 14px}
+.role.big{background:var(--primary-soft);color:var(--primary)} .role.little{background:var(--leaf-soft);color:var(--leaf)}
+.readbig{font-size:clamp(34px,9vw,56px);font-weight:900;line-height:1.3}
+.mailcard{background:var(--sun-soft);border-color:transparent} .mailcard .ic{background:var(--surface)}
+.wishcard .ic{background:var(--primary-soft)}
+.mailwait{text-align:center}
+.choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
+.choice{border:1.5px solid var(--line);background:var(--surface);border-radius:18px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;transition:transform .08s}
+.choice .e{font-size:36px;line-height:1.1} .choice b{font-family:var(--jp);font-size:15px;font-weight:900} .choice small{font-size:11px;color:var(--soft);font-weight:600}
+.choice.big{padding:18px 8px} .choice.big .e{font-size:48px}
+.choice.on{border-color:var(--primary);background:var(--primary-soft)} .choice:active{transform:scale(.97)}
+.btn[disabled]{opacity:.45;cursor:default}
+.pattern{font-size:22px;font-weight:900;color:var(--primary);background:var(--primary-soft);border-radius:12px;padding:6px 16px}
+.cue{font-size:22px;font-weight:800;letter-spacing:-.01em}
+.clues{display:flex;flex-direction:column;gap:8px;width:100%}
+.clue{display:flex;align-items:center;gap:14px;background:var(--tint);border:1px solid var(--line);border-radius:16px;padding:12px 16px;text-align:left;width:100%}
+.clue svg{width:20px;height:20px;color:var(--primary);flex:none}
+.clue b{font-family:var(--jp);font-weight:900;font-size:20px;display:block}
+.clue small{display:block;font-size:13px;color:var(--soft);font-weight:600}
+.pic{font-size:clamp(80px,22vw,120px);line-height:1}
+.ring{width:88px;height:88px;border-radius:50%;border:6px solid var(--line);border-top-color:var(--primary);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ringlabel{font-weight:800;color:var(--primary)}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.btn{border:1px solid var(--line);border-radius:999px;padding:13px 24px;font-weight:800;font-size:16px;background:var(--surface);transition:transform .08s}
+.btn.main{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+.btn.leaf{background:var(--leaf);color:#fff;border-color:var(--leaf)}
+
+/* results */
+.bigscore{font-size:clamp(64px,18vw,104px);line-height:1;font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.bigstars{font-size:34px;letter-spacing:6px;color:var(--sun)}
+.newbest{background:var(--sun-soft);color:var(--sun-ink);font-weight:800;font-size:13px;letter-spacing:.1em;text-transform:uppercase;border-radius:999px;padding:6px 16px}
+.sub{font-weight:600;color:var(--soft);font-size:14px}
+
+/* grown-ups */
+.doc{background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:24px 20px;display:flex;flex-direction:column;gap:14px}
+.doc h2{font-size:24px;font-weight:800} .doc h3{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin-top:10px}
+.doc p,.doc li{max-width:65ch}
+.doc ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:10px 12px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+td.j{font-family:var(--jp);font-weight:900;font-size:16px;white-space:nowrap}
+.field{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:13px;color:var(--soft)}
+.field input{font:inherit;font-size:16px;font-weight:600;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--tint);color:var(--ink);max-width:240px}
+.note{background:var(--primary-soft);border-radius:14px;padding:14px 16px;font-weight:600;font-size:14px}
+.warn{background:var(--bad-soft);border-radius:14px;padding:14px 16px;font-weight:600;font-size:14px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="app"></div>
+
+<script>
+/*PACKS-START*/
+/* ---------- weekly content packs. Everything a week needs lives in its pack; the games are generic. ---------- */
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+// {x}=Japanese word · {e}/{E}=English word · {g}/{G}=generic English ("apples", "Grandma", "the dog") · {o}="an apple"
+const ft=(t,w,x)=>t.replace('{x}',x).replace('{e}',w.en).replace('{E}',cap(w.en)).replace('{g}',w.gen).replace('{G}',cap(w.gen)).replace('{o}',w.one).replace('{m}',w.my||'').replace('{t}',w.ths||'');
+const CUE1='How do you say this in Japanese?';
+const COUNTERS={
+ tsu:[{n:1,jp:'ひとつ',tts:'一つ',word:'one'},{n:2,jp:'ふたつ',tts:'二つ',word:'two'},{n:3,jp:'みっつ',tts:'三つ',word:'three'}],
+ nin:[{n:1,jp:'ひとり',tts:'一人',word:'one'},{n:2,jp:'ふたり',tts:'二人',word:'two'},{n:3,jp:'さんにん',tts:'三人',word:'three'}],
+ hiki:[{n:1,jp:'いっぴき',tts:'一匹',word:'one'},{n:2,jp:'にひき',tts:'二匹',word:'two'},{n:3,jp:'さんびき',tts:'三匹',word:'three'}],
+ wa:[{n:1,jp:'いちわ',tts:'一羽',word:'one'},{n:2,jp:'にわ',tts:'二羽',word:'two'},{n:3,jp:'さんわ',tts:'三羽',word:'three'}]
+};
+const PACKS={
+w1:{id:'w1',week:1,jp:'たべもの',en:'Food',
+ words:[
+  {id:'ringo',jp:'りんご',en:'apple',one:'an apple',gen:'apples',pl:'apples',cnt:'tsu',pic:'🍎'},{id:'banana',jp:'バナナ',en:'banana',one:'a banana',gen:'bananas',pl:'bananas',cnt:'tsu',pic:'🍌'},
+  {id:'ichigo',jp:'いちご',en:'strawberry',one:'a strawberry',gen:'strawberries',pl:'strawberries',cnt:'tsu',pic:'🍓'},{id:'mikan',jp:'みかん',en:'mandarin orange',one:'a mandarin orange',gen:'mandarin oranges',pl:'mandarin oranges',cnt:'tsu',pic:'🍊'},
+  {id:'budou',jp:'ぶどう',en:'grapes',one:'grapes',gen:'grapes',cnt:'tsu',pic:'🍇'},{id:'suika',jp:'すいか',en:'watermelon',one:'a watermelon',gen:'watermelon',pl:'watermelons',cnt:'tsu',pic:'🍉'},
+  {id:'mizu',jp:'みず',tts:'水',en:'water',one:'water',gen:'water',cnt:'tsu',pic:'💧'},{id:'gyunyu',jp:'ぎゅうにゅう',tts:'牛乳',en:'milk',one:'milk',gen:'milk',cnt:'tsu',pic:'🥛'},
+  {id:'pan',jp:'パン',en:'bread',one:'bread',gen:'bread',cnt:'tsu',pic:'🍞'},{id:'onigiri',jp:'おにぎり',en:'rice ball',one:'a rice ball',gen:'rice balls',pl:'rice balls',cnt:'tsu',pic:'🍙'},
+  {id:'tamago',jp:'たまご',tts:'卵',en:'egg',one:'an egg',gen:'eggs',pl:'eggs',cnt:'tsu',pic:'🥚'},{id:'keeki',jp:'ケーキ',en:'cake',one:'cake',gen:'cake',pl:'cakes',cnt:'tsu',pic:'🍰'}],
+ frames:[
+  {id:'kudasai',jp:'{x}を ください。',tts:'{x}をください。',en:'{E}, please.',cue:'Ask for the {e}, please.'},
+  {id:'doko',jp:'{x}は どこ？',tts:'{x}はどこ？',en:'Where is the {e}?',cue:'Ask: where is the {e}?'},
+  {id:'suki',jp:'{x}が すき！',tts:'{x}が好き！',en:'I like {e}!',cue:'Say: I like {e}!'},
+  {id:'hoshii',jp:'{x}が ほしい。',tts:'{x}が欲しい。',en:'I want {e}.',cue:'Say: I want the {e}.'}],
+ frames3:[
+  {id:'neg',jp:'{x}が すきじゃない。',tts:'{x}が好きじゃない。',en:"I don't like {g}.",cue:"Say: I don't like {g}."},
+  {id:'q',jp:'{x}が すき？',tts:'{x}が好き？',en:'Do you like {g}?',cue:'Ask: do you like {g}?'},
+  {id:'desu',jp:'これは {x} です。',tts:'これは{x}です。',en:'This is {o}.',cue:'Say: this is {o}.'}],
+ fixed:[
+  {id:'itadaki',jp:'いただきます！',tts:'いただきます！',en:'(before eating)',cue:'What do we say before we eat?',pic:'🙏'},
+  {id:'gochiso',jp:'ごちそうさま！',tts:'ごちそうさま！',en:'(after eating)',cue:'What do we say when we finish eating?',pic:'😋'},
+  {id:'oishii',jp:'おいしい！',tts:'美味しい！',en:'Yummy!',cue:'Say: yummy!',pic:'🤤'},
+  {id:'motto',jp:'もっと ください。',tts:'もっとください。',en:'More, please.',cue:'Ask for more, please.',pic:'🍽️',late:true},
+  {id:'nani',jp:'これは なに？',tts:'これは何？',en:'What is this?',cue:'Ask: what is this?',pic:'❓',late:true}],
+ countSay:(w,c)=>({tts:(w.tts||w.jp)+'を'+c.tts+'ください。',show:w.jp+'を '+c.jp+' ください。',en:c.n+' × '+w.en+', please.'}),
+ countCue:(w,c)=>'Ask for '+c.word+' '+w.pl+', please.',
+ countEn:(w,c)=>cap(c.word)+' '+w.pl+', please.',
+ orderSay:(a,ca,b,cb)=>({tts:(a.tts||a.jp)+'を'+ca.tts+'と、'+(b.tts||b.jp)+'を'+cb.tts+'ください。',show:a.jp+'を '+ca.jp+' と '+b.jp+'を '+cb.jp+' ください。',en:ca.n+' × '+a.en+' and '+cb.n+' × '+b.en+', please.'}),
+ shopLv:['How many? One, two or three','Which food, and how many','Two foods in one order','Three orders in a row','Be the shopkeeper: build one order','Be the shopkeeper: build a two-food order'],
+ cats:['fruit','drink','food'],neg:{nfruit:'fruit',ndrink:'drink',nwhite:'white'},
+ cl:{
+  fruit:['くだもの です。','果物です。','It is a fruit.'],drink:['のみもの です。','飲み物です。','It is a drink.'],food:['たべもの です。','食べ物です。','It is a food.'],
+  red:['あかい です。','赤いです。','It is red.'],yellow:['きいろい です。','黄色いです。','It is yellow.'],orange:['オレンジいろ です。','オレンジ色です。','It is orange.'],
+  purple:['むらさき です。','紫です。','It is purple.'],green:['みどり です。','緑です。','It is green.'],white:['しろい です。','白いです。','It is white.'],brown:['ちゃいろ です。','茶色です。','It is brown.'],
+  big:['おおきい です。','大きいです。','It is big.'],small:['ちいさい です。','小さいです。','It is small.'],sweet:['あまい です。','甘いです。','It is sweet.'],
+  round:['まるい です。','丸いです。','It is round.'],long:['ながい です。','長いです。','It is long.'],tri:['さんかく です。','三角です。','It is a triangle.'],
+  nfruit:['くだもの じゃない です。','果物じゃないです。','It is NOT a fruit.'],ndrink:['のみもの じゃない です。','飲み物じゃないです。','It is NOT a drink.'],nwhite:['しろくない です。','白くないです。','It is NOT white.']},
+ // is = clearly true; maybe = arguable, so that clue is never used while the picture is on screen
+ facts:{
+  ringo:{is:['fruit','red','sweet','round'],maybe:['food','small','big','green']},banana:{is:['fruit','yellow','sweet','long'],maybe:['food']},
+  ichigo:{is:['fruit','red','sweet','small'],maybe:['food','round']},mikan:{is:['fruit','orange','sweet','round'],maybe:['food','small']},
+  budou:{is:['fruit','purple','sweet'],maybe:['food','small','round','green']},suika:{is:['fruit','green','sweet','big','round'],maybe:['food','red']},
+  mizu:{is:['drink'],maybe:['white']},gyunyu:{is:['drink','white'],maybe:['sweet']},
+  pan:{is:['food','brown'],maybe:['sweet','white','round','long','big']},onigiri:{is:['food','white','tri'],maybe:['small']},
+  tamago:{is:['food','white'],maybe:['round','small','brown']},keeki:{is:['food','sweet'],maybe:['white','round','tri','big','brown','red']}},
+ mission:{title:'こんばんの ミッション',who:'Tonight, with Dad or Grandma',items:['Everyone says いただきます before eating and ごちそうさま after.','To get a food, ask in Japanese: 「〜を ください」.','Dad or Grandma points and asks 「これは なに？」 — answer with the Japanese word.']},
+ home:[['これは なに？','What is this?','Point at any food on the table. Wait for the Japanese word.'],['〜を ください','…, please','Food is handed over only when asked for in Japanese.'],['〜は どこ？','Where is …?','Hide a fruit; ask, and let them point and answer.'],['〜が すき？','Do you like …?','Good one for Grandma on a call. Answer: すき！ / すきじゃない。'],['ひとつ・ふたつ・みっつ','1, 2, 3 things','「いちごを ふたつ ください」 when serving.'],['いただきます / ごちそうさま / おいしい','Meal phrases','Every meal.']]
+},
+w2:{id:'w2',week:2,jp:'かぞく',en:'Family and pets',
+ words:[
+  {id:'obaachan',jp:'おばあちゃん',en:'grandma',one:'Grandma',gen:'Grandma',pic:'👵'},{id:'ojiichan',jp:'おじいちゃん',en:'grandpa',one:'Grandpa',gen:'Grandpa',pic:'👴'},
+  {id:'okaasan',jp:'おかあさん',tts:'お母さん',en:'mom',one:'Mom',gen:'Mom',pic:'👩'},{id:'otousan',jp:'おとうさん',tts:'お父さん',en:'dad',one:'Dad',gen:'Dad',pic:'👨'},
+  {id:'onnanoko',jp:'おんなのこ',tts:'女の子',en:'girl',one:'a girl',gen:'the girl',pl:'girls',cnt:'nin',pic:'👧'},{id:'otokonoko',jp:'おとこのこ',tts:'男の子',en:'boy',one:'a boy',gen:'the boy',pl:'boys',cnt:'nin',pic:'👦'},
+  {id:'akachan',jp:'あかちゃん',tts:'赤ちゃん',en:'baby',one:'a baby',gen:'the baby',pl:'babies',cnt:'nin',pic:'👶'},{id:'inu',jp:'いぬ',tts:'犬',en:'dog',one:'a dog',gen:'the dog',pl:'dogs',cnt:'hiki',pic:'🐶'},
+  {id:'neko',jp:'ねこ',tts:'猫',en:'cat',one:'a cat',gen:'the cat',pl:'cats',cnt:'hiki',pic:'🐱'},{id:'usagi',jp:'うさぎ',en:'rabbit',one:'a rabbit',gen:'the rabbit',pl:'rabbits',cnt:'hiki',pic:'🐰'},
+  {id:'tori',jp:'とり',tts:'鳥',en:'bird',one:'a bird',gen:'the bird',pl:'birds',cnt:'wa',pic:'🐦'},{id:'sakana',jp:'さかな',tts:'魚',en:'fish',one:'a fish',gen:'the fish',pl:'fish',cnt:'hiki',pic:'🐟'}],
+ frames:[
+  {id:'doko',jp:'{x}は どこ？',tts:'{x}はどこ？',en:'Where is {g}?',cue:'Ask: where is {g}?'},
+  {id:'daisuki',jp:'{x}が だいすき！',tts:'{x}が大好き！',en:'I love {g}!',cue:'Say: I love {g}!'},
+  {id:'aitai',jp:'{x}に あいたい。',tts:'{x}に会いたい。',en:'I want to see {g}.',cue:'Say: I want to see {g}.'},
+  {id:'asobu',jp:'{x}と あそぶ。',tts:'{x}と遊ぶ。',en:'I play with {g}.',cue:'Say: I play with {g}.'}],
+ frames3:[
+  {id:'desu',jp:'これは {x} です。',tts:'これは{x}です。',en:'This is {o}.',cue:'Say: this is {o}.'},
+  {id:'inai',jp:'{x}が いない。',tts:'{x}がいない。',en:'{G} is not here.',cue:'Say: {g} is not here.'},
+  {id:'asobitai',jp:'{x}と あそびたい。',tts:'{x}と遊びたい。',en:'I want to play with {g}.',cue:'Say: I want to play with {g}.'}],
+ fixed:[
+  {id:'konnichiwa',jp:'こんにちは！',tts:'こんにちは！',en:'Hello!',cue:'Say hello.',pic:'👋'},
+  {id:'arigatou',jp:'ありがとう！',tts:'ありがとう！',en:'Thank you!',cue:'Say thank you.',pic:'🙏'},
+  {id:'daisuki',jp:'だいすき！',tts:'大好き！',en:'I love you!',cue:'Say: I love you!',pic:'❤️'},
+  {id:'matane',jp:'またね！',tts:'またね！',en:'See you!',cue:'Say: see you!',pic:'🤗'},
+  {id:'oyasumi',jp:'おやすみ！',tts:'おやすみ！',en:'Good night!',cue:'Say good night.',pic:'🌙'},
+  {id:'genki',jp:'げんき？',tts:'元気？',en:'How are you?',cue:'Ask: how are you?',pic:'🙂',late:true},
+  {id:'genkidayo',jp:'げんきだよ！',tts:'元気だよ！',en:"I'm fine!",cue:"Say: I'm fine!",pic:'💪',late:true},
+  {id:'aitai',jp:'あいたい！',tts:'会いたい！',en:'I want to see you!',cue:'Say: I want to see you!',pic:'🥺',late:true}],
+ countSay:(w,c)=>({tts:(w.tts||w.jp)+'が'+c.tts+'います。',show:w.jp+'が '+c.jp+' います。',en:c.n+' × '+w.en}),
+ countCue:(w,c)=>'Say: there are '+c.word+' '+w.pl+'.',
+ countEn:(w,c)=>'There are '+c.word+' '+w.pl+'.',
+ orderSay:(a,ca,b,cb)=>({tts:(a.tts||a.jp)+'が'+ca.tts+'と、'+(b.tts||b.jp)+'が'+cb.tts+'います。',show:a.jp+'が '+ca.jp+' と '+b.jp+'が '+cb.jp+' います。',en:ca.n+' × '+a.en+' and '+cb.n+' × '+b.en}),
+ shopTitle:{jp:'なんにん？',en:'Count who is there',ic:'🧮'},
+ shopLv:['How many? ひとり・ふたり / いっぴき・にひき','Who, and how many','Two groups in one sentence','Three groups in a row','Make the group you hear','Make two groups you hear'],
+ cats:['person','animal'],neg:{nperson:'person',nanimal:'animal',notona:'otona'},
+ cl:{
+  person:['ひと です。','人です。','It is a person.'],animal:['どうぶつ です。','動物です。','It is an animal.'],
+  otona:['おとな です。','大人です。','It is a grown-up.'],kodomo:['こども です。','子供です。','It is a child.'],toshi:['おとしより です。','お年寄りです。','It is an old person.'],
+  onna:['おんなの ひと です。','女の人です。','It is a woman.'],otoko:['おとこの ひと です。','男の人です。','It is a man.'],small:['とても ちいさい です。','とても小さいです。','It is very small.'],
+  fly:['そらを とびます。','空を飛びます。','It flies in the sky.'],swim:['およぎます。','泳ぎます。','It swims.'],water:['みずの なかに います。','水の中にいます。','It lives in the water.'],
+  ears:['みみが ながい です。','耳が長いです。','It has long ears.'],wan:['ワンワンと なきます。','ワンワンと鳴きます。','It says woof.'],nyan:['ニャーと なきます。','ニャーと鳴きます。','It says meow.'],
+  nperson:['ひと じゃない です。','人じゃないです。','It is NOT a person.'],nanimal:['どうぶつ じゃない です。','動物じゃないです。','It is NOT an animal.'],notona:['おとな じゃない です。','大人じゃないです。','It is NOT a grown-up.']},
+ facts:{
+  obaachan:{is:['person','otona','toshi','onna'],maybe:[]},ojiichan:{is:['person','otona','toshi','otoko'],maybe:[]},
+  okaasan:{is:['person','otona','onna'],maybe:[]},otousan:{is:['person','otona','otoko'],maybe:[]},
+  onnanoko:{is:['person','kodomo'],maybe:['onna','small']},otokonoko:{is:['person','kodomo'],maybe:['otoko','small']},
+  akachan:{is:['person','kodomo','small'],maybe:['onna','otoko']},inu:{is:['animal','wan'],maybe:['swim','small']},
+  neko:{is:['animal','nyan'],maybe:['small']},usagi:{is:['animal','ears'],maybe:['small']},
+  tori:{is:['animal','fly'],maybe:['small','swim','water']},sakana:{is:['animal','swim','water'],maybe:['small']}},
+ mission:{title:'おばあちゃんと はなそう',who:'This week, with Grandma (video call or in person)',items:['Open with 「おばあちゃん、こんにちは！」 and ask 「げんき？」.','Grandma asks 「〜は どこ？」 about Mom, Dad or a pet. Answer in Japanese, or point and say the word.','Finish with 「だいすき！」 and 「またね！」.']},
+ home:[['〜は どこ？','Where is …?','Ask about family members through the day: 「おかあさんは どこ？」. Wait for a Japanese answer or the word.'],['〜が だいすき','I love …','Model it yourself: 「おとうさんは いぬが だいすき！」. Ask 「なにが だいすき？」.'],['〜に あいたい','I want to see …','Before a Grandma call: 「おばあちゃんに あいたい？」.'],['ひとり・ふたり・さんにん','Counting people','Count the family at the table. Animals use いっぴき・にひき・さんびき.'],['こんにちは / げんき？ / げんきだよ！','Greetings','Every call with Grandma opens this way.'],['だいすき / またね / おやすみ','Goodbyes','Every call and every bedtime.']]
+},
+w3:{id:'w3',week:3,jp:'がっこう',en:'School',
+ words:[
+  {id:'enpitsu',jp:'えんぴつ',tts:'鉛筆',en:'pencil',one:'a pencil',gen:'pencils',pl:'pencils',my:'is my pencil',ths:'This is a pencil',kind:'thing',cnt:'tsu',pic:'✏️'},
+  {id:'hon',jp:'ほん',tts:'本',en:'book',one:'a book',gen:'books',pl:'books',my:'is my book',ths:'This is a book',kind:'thing',cnt:'tsu',pic:'📖'},
+  {id:'kaban',jp:'かばん',en:'school bag',one:'a school bag',gen:'my school bag',pl:'school bags',my:'is my school bag',ths:'This is a school bag',kind:'thing',cnt:'tsu',pic:'🎒'},
+  {id:'hasami',jp:'はさみ',en:'scissors',one:'scissors',gen:'scissors',my:'are my scissors',ths:'These are scissors',kind:'thing',cnt:'tsu',pic:'✂️'},
+  {id:'nooto',jp:'ノート',en:'notebook',one:'a notebook',gen:'notebooks',pl:'notebooks',my:'is my notebook',ths:'This is a notebook',kind:'thing',cnt:'tsu',pic:'📓'},
+  {id:'isu',jp:'いす',tts:'椅子',en:'chair',one:'a chair',gen:'chairs',pl:'chairs',my:'is my chair',ths:'This is a chair',kind:'thing',cnt:'tsu',pic:'🪑'},
+  {id:'tokei',jp:'とけい',tts:'時計',en:'clock',one:'a clock',gen:'clocks',pl:'clocks',my:'is my clock',ths:'This is a clock',kind:'thing',cnt:'tsu',pic:'🕐'},
+  {id:'enogu',jp:'えのぐ',tts:'絵の具',en:'paints',one:'paints',gen:'paints',my:'are my paints',ths:'These are paints',kind:'thing',pic:'🎨'},
+  {id:'booru',jp:'ボール',en:'ball',one:'a ball',gen:'balls',pl:'balls',my:'is my ball',ths:'This is a ball',kind:'thing',cnt:'tsu',pic:'⚽'},
+  {id:'sensei',jp:'せんせい',tts:'先生',en:'teacher',one:'my teacher',gen:'my teacher',pl:'teachers',my:'is my teacher',ths:'This is my teacher',kind:'person',cnt:'nin',pic:'🧑‍🏫'},
+  {id:'tomodachi',jp:'ともだち',tts:'友達',en:'friend',one:'my friend',gen:'my friend',pl:'friends',my:'is my friend',ths:'This is my friend',kind:'person',cnt:'nin',pic:'🧒'},
+  {id:'obentou',jp:'おべんとう',tts:'お弁当',en:'lunch box',one:'a lunch box',gen:'lunch',pl:'lunch boxes',my:'is my lunch box',ths:'This is a lunch box',kind:'thing',cnt:'tsu',pic:'🍱'}],
+ frames:[
+  {id:'doko',jp:'{x}は どこ？',tts:'{x}はどこ？',en:'Where {m}?',cue:'Ask: where {m}?'},
+  {id:'suki',jp:'{x}が すき！',tts:'{x}が好き！',en:'I like {g}!',cue:'Say: I like {g}!'},
+  {id:'kashite',kind:'thing',skip:['obentou'],jp:'{x}を かして。',tts:'{x}を貸して。',en:'Lend me {o}, please.',cue:'Ask to borrow {o}.'},
+  {id:'aru',kind:'thing',jp:'{x}が ある。',tts:'{x}がある。',en:'I have {o}.',cue:'Say: I have {o}.'},
+  {id:'iru',kind:'person',jp:'{x}が いる。',tts:'{x}がいる。',en:'{G} is here.',cue:'Say: {g} is here.'}],
+ frames3:[
+  {id:'desu',jp:'これは {x} です。',tts:'これは{x}です。',en:'{t}.',cue:'Say: {t}.'},
+  {id:'nai',kind:'thing',jp:'{x}が ない。',tts:'{x}がない。',en:"I don't have {o}.",cue:"Say: I don't have {o}."},
+  {id:'inai',kind:'person',jp:'{x}が いない。',tts:'{x}がいない。',en:'{G} is not here.',cue:'Say: {g} is not here.'},
+  {id:'watashino',kind:'thing',jp:'わたしの {x} です。',tts:'私の{x}です。',en:'Mine! My {e}.',cue:'Say: mine! My {e}.'}],
+ fixed:[
+  {id:'ohayou',jp:'おはよう！',tts:'おはよう！',en:'Good morning!',cue:'Say good morning.',pic:'🌅'},
+  {id:'ittekimasu',jp:'いってきます！',tts:'行ってきます！',en:"I'm off! (leaving home)",cue:'What do we say when we leave home?',pic:'🚪'},
+  {id:'tadaima',jp:'ただいま！',tts:'ただいま！',en:"I'm home!",cue:'What do we say when we come home?',pic:'🏠'},
+  {id:'hai',jp:'はい！',tts:'はい！',en:'Yes! / Here!',cue:'The teacher calls your name. Say: here!',pic:'✋'},
+  {id:'dekita',jp:'できた！',tts:'できた！',en:'I did it!',cue:'Say: I did it!',pic:'🎉'},
+  {id:'wakatta',jp:'わかった！',tts:'分かった！',en:'I get it!',cue:'Say: I get it!',pic:'💡',late:true},
+  {id:'wakaranai',jp:'わからない。',tts:'分からない。',en:"I don't understand.",cue:"Say: I don't understand.",pic:'🤔',late:true},
+  {id:'tetsudatte',jp:'てつだって！',tts:'手伝って！',en:'Help me!',cue:'Ask for help.',pic:'🙋',late:true}],
+ countSay:(w,c)=>({tts:(w.tts||w.jp)+'が'+c.tts+(w.kind==='person'?'います。':'あります。'),show:w.jp+'が '+c.jp+(w.kind==='person'?' います。':' あります。'),en:c.n+' × '+w.en}),
+ countCue:(w,c)=>'Say: there are '+c.word+' '+w.pl+'.',
+ countEn:(w,c)=>'There are '+c.word+' '+w.pl+'.',
+ orderSay:(a,ca,b,cb)=>({tts:(a.tts||a.jp)+'が'+ca.tts+'と、'+(b.tts||b.jp)+'が'+cb.tts+(b.kind==='person'?'います。':'あります。'),show:a.jp+'が '+ca.jp+' と '+b.jp+'が '+cb.jp+(b.kind==='person'?' います。':' あります。'),en:ca.n+' × '+a.en+' and '+cb.n+' × '+b.en}),
+ shopTitle:{jp:'いくつ？',en:'Count what is there',ic:'🧮'},
+ shopLv:['How many? ひとつ・ふたつ・みっつ','What, and how many','Two groups in one sentence','Three groups in a row','Make the group you hear','Make two groups you hear'],
+ cats:['thing','person'],neg:{nthing:'thing',nperson:'person',nround:'round'},
+ cl:{
+  thing:['もの です。','物です。','It is a thing.'],person:['ひと です。','人です。','It is a person.'],
+  write:['かく ときに つかいます。','書く時に使います。','You use it to write.'],draw:['えを かく ときに つかいます。','絵を描く時に使います。','You use it to paint pictures.'],
+  read:['よみます。','読みます。','You read it.'],paper:['かみで できています。','紙でできています。','It is made of paper.'],cut:['かみを きります。','紙を切ります。','It cuts paper.'],
+  sit:['すわります。','座ります。','You sit on it.'],time:['じかんが わかります。','時間が分かります。','It tells the time.'],round:['まるい です。','丸いです。','It is round.'],
+  kick:['けったり なげたり します。','蹴ったり投げたりします。','You kick it or throw it.'],carry:['にもつを いれます。','荷物を入れます。','You put your things in it.'],eat:['たべます。','食べます。','You eat it.'],
+  teach:['おしえて くれます。','教えてくれます。','This person teaches you.'],playw:['いっしょに あそびます。','一緒に遊びます。','You play together.'],otona:['おとな です。','大人です。','It is a grown-up.'],
+  nthing:['もの じゃない です。','物じゃないです。','It is NOT a thing.'],nperson:['ひと じゃない です。','人じゃないです。','It is NOT a person.'],nround:['まるくない です。','丸くないです。','It is NOT round.']},
+ facts:{
+  enpitsu:{is:['thing','write'],maybe:['draw']},hon:{is:['thing','read','paper'],maybe:[]},kaban:{is:['thing','carry'],maybe:[]},hasami:{is:['thing','cut'],maybe:[]},
+  nooto:{is:['thing','paper'],maybe:['write','read','draw']},isu:{is:['thing','sit'],maybe:[]},tokei:{is:['thing','time'],maybe:['round']},enogu:{is:['thing','draw'],maybe:['write']},
+  booru:{is:['thing','round','kick'],maybe:['playw']},sensei:{is:['person','teach','otona'],maybe:['playw']},tomodachi:{is:['person','playw'],maybe:['otona','teach']},
+  obentou:{is:['thing','eat'],maybe:['carry','round']}},
+ mission:{title:'がっこうの じゅんび',who:'Every school morning and afternoon, with Dad',items:['Leave with 「いってきます！」 and come home with 「ただいま！」. Dad answers 「いってらっしゃい」 and 「おかえり」.','Pack the school bag in Japanese: Dad asks 「えんぴつは どこ？」 「ほんは ある？」.','Tell Grandma one thing about school: 「せんせいが すき！」 or 「ともだちが いる」.']},
+ home:[['いってきます / ただいま','Leaving / coming home','Every school day at the door. Answer いってらっしゃい and おかえり.'],['〜は どこ？','Where is my …?','While packing the bag or looking for shoes: 「かばんは どこ？」.'],['〜を かして','Lend me …','At homework time, ask each other for things in Japanese.'],['〜が ある / ない','I have / I don\'t have …','Check the bag together: 「ノートが ある？」 「ない！」.'],['わかった / わからない','I get it / I don\'t understand','During homework. 「わからない」 is a useful thing to be able to say.'],['できた！ / てつだって！','I did it! / Help me!','Any task, any time.']]
+}};
+// thirty fixed two-group sentences per week (fixed so every one has a voice clip)
+function orders2(p){const cw=p.words.filter(w=>w.cnt),m=cw.length;return Array.from({length:30},(_,i)=>{const r=Math.floor(i/m),a=cw[i%m],b=cw[(i*5+3+r*2)%m],ca=COUNTERS[a.cnt][(i+r)%3],cb=COUNTERS[b.cnt][(i*2+1+r)%3];
+  return Object.assign({w1:a,w2:b,c1:ca,c2:cb},p.orderSay(a,ca,b,cb))})}
+// every line a week can speak: [lang, text]
+function allLines(p){const o=[];o.push(['en',CUE1]);
+  p.words.forEach(w=>{const x=w.tts||w.jp;o.push(['ja',x]);
+    p.frames.concat(p.frames3).forEach(f=>{if((f.kind&&f.kind!==w.kind)||(f.skip||[]).includes(w.id))return;o.push(['ja',ft(f.tts,w,x)]);o.push(['en',ft(f.cue,w,'')])});
+    if(w.cnt)COUNTERS[w.cnt].forEach(c=>o.push(['ja',p.countSay(w,c).tts]));
+    if(w.cnt&&w.pl)COUNTERS[w.cnt].slice(1).forEach(c=>o.push(['en',p.countCue(w,c)]))});
+  p.fixed.forEach(f=>{o.push(['ja',f.tts]);o.push(['en',f.cue])});
+  Object.values(p.cl).forEach(c=>o.push(['ja',c[1]]));
+  orders2(p).forEach(x=>o.push(['ja',x.tts]));return o}
+/*PACKS-END*/
+
+// Voice clips published next to the page: "<lang>|<text>" -> file in audio/. Filled in by inject_manifest.js.
+const RECORDED={}; // public build: no recorded clips, the device's own voices speak
+const SPK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z" fill="currentColor"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6"/><path d="M18 6.5a7.8 7.8 0 0 1 0 11"/></svg>';
+
+/* ---------- current week ---------- */
+let PK=PACKS.w1,WORDS,W,FIXED,SENT,ORD2;
+const ALLW={};for(const k in PACKS)PACKS[k].words.forEach(w=>{ALLW[w.id]=w});
+function setWeek(id){PK=PACKS[id]||PACKS.w1;WORDS=PK.words;W=Object.fromEntries(WORDS.map(w=>[w.id,w]));FIXED=PK.fixed;ORD2=orders2(PK);
+  const mk=(f,hard)=>({hard,fits:w=>(!f.kind||f.kind===w.kind)&&!(f.skip||[]).includes(w.id),tts:w=>ft(f.tts,w,w.tts||w.jp),jp:w=>ft(f.jp,w,w.jp),en:w=>ft(f.en,w,''),cue:w=>ft(f.cue,w,''),pattern:ft(f.jp,{en:'',gen:'',one:''},'〜')});
+  SENT=PK.frames.map(f=>mk(f,false)).concat(PK.frames3.map(f=>mk(f,true)));
+  try{localStorage.setItem('np-week',PK.id)}catch(e){}
+  try{if(PK.id==='w2')loadPack('pack2');if(PK.id==='w3')loadPack('pack3')}catch(e){}}
+{const latest='w3';let wk=latest;try{if(localStorage.getItem('np-latest')===latest)wk=localStorage.getItem('np-week')||latest;localStorage.setItem('np-latest',latest)}catch(e){}setWeek(wk)}
+// best-score key: week 1 keeps its original keys so old scores carry over
+const bk=g=>PK.id==='w1'?g:PK.id+'_'+g;
+
+/* ---------- state: kept on the device and, when available, in the artifact's shared store ---------- */
+const KEY='nihongo-picnic-v1';
+const fresh=()=>({resetAt:0,players:{big:{name:'Big Sister',nameAt:0,best:{},stars:0,miss:{}},little:{name:'Little One',nameAt:0,best:{},stars:0,miss:{}}},missions:{},team:{best:{},stars:0},opened:{},wish:{}});
+function normalize(o){const f=fresh();if(!o||typeof o!=='object')return f;
+  f.resetAt=+o.resetAt||0;f.missions=Object.assign({},o.missions);
+  f.team={best:Object.assign({},o.team&&o.team.best),stars:+(o.team&&o.team.stars)||0};f.opened=Object.assign({},o.opened);f.wish=o.wish&&typeof o.wish==='object'?Object.assign({},o.wish):{};
+  for(const k of['big','little']){const p=(o.players&&o.players[k])||{};f.players[k]={name:typeof p.name==='string'&&p.name?p.name:f.players[k].name,nameAt:+p.nameAt||0,best:Object.assign({},p.best),stars:+p.stars||0,miss:Object.assign({},p.miss)}}
+  return f}
+const maxMap=(a,b)=>{const o=Object.assign({},a);for(const k in b)o[k]=Math.max(o[k]||0,+b[k]||0);return o};
+// Two devices never lose progress to each other: scores, stars and misses only go up; a reset wins by timestamp.
+function mergeState(a,b){a=normalize(a);b=normalize(b);
+  if(b.resetAt>a.resetAt)return b;if(a.resetAt>b.resetAt)return a;
+  const out=fresh();out.resetAt=a.resetAt;out.missions=Object.assign({},a.missions,b.missions);
+  out.team={best:maxMap(a.team.best,b.team.best),stars:Math.max(a.team.stars,b.team.stars)};out.opened=Object.assign({},a.opened,b.opened);out.wish=(b.wish.at||0)>(a.wish.at||0)?b.wish:a.wish;
+  for(const k of['big','little']){const x=a.players[k],y=b.players[k];const n=y.nameAt>x.nameAt?y:x;
+    out.players[k]={name:n.name,nameAt:n.nameAt,best:maxMap(x.best,y.best),stars:Math.max(x.stars,y.stars),miss:maxMap(x.miss,y.miss)}}
+  return out}
+const canon=o=>o&&typeof o==='object'?'{'+Object.keys(o).sort().map(k=>JSON.stringify(k)+':'+canon(o[k])).join(',')+'}':JSON.stringify(o);
+let S=fresh();
+try{const raw=localStorage.getItem(KEY);if(raw)S=normalize(JSON.parse(raw))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let who='big',G=null,screen='home';
+let MSGS=[];try{MSGS=JSON.parse(localStorage.getItem('np-msgs')||'[]')}catch(e){}
+let msgCol=null;
+const saveMsgs=()=>{try{localStorage.setItem('np-msgs',JSON.stringify(MSGS))}catch(e){}};
+const totalStars=()=>S.players.big.stars+S.players.little.stars+S.team.stars;
+function rerender(){if(screen==='home')home();else if(screen==='hub')hub();else if(screen==='team')teamHub();else if(screen==='mail')mail()}
+let cloud=null,syncOn=false,writing=false,dirty=false;
+function push(){if(!cloud)return;if(writing){dirty=true;return}writing=true;
+  cloud.set(JSON.parse(JSON.stringify(S))).catch(()=>{}).then(()=>{writing=false;if(dirty){dirty=false;push()}})}
+function setSync(on){syncOn=on;const el=document.querySelector('.sync');if(el){el.classList.toggle('on',on);el.lastChild.textContent=syncLabel()}}
+const syncLabel=()=>syncOn?'Scores sync across your devices':'Scores saved on this device';
+(async()=>{try{
+  const db=window.claude&&window.claude.use?await window.claude.use('db'):null;if(!db)return;
+  cloud=db.doc('family/state');
+  // Grandma's messages: one small document each (a short voice clip fits well inside the 256 KB document limit)
+  msgCol=db.collection('messages');
+  msgCol.onSnapshot(q=>{const remote=q.docs.map(d=>Object.assign({},d.data(),{id:d.id}));const ids=new Set(remote.map(m=>m.id));
+    MSGS.filter(m=>!ids.has(m.id)).forEach(m=>{const c=Object.assign({},m);delete c.id;msgCol.doc(m.id).set(c).catch(()=>{});remote.push(m)});
+    MSGS=remote.sort((a,b)=>a.at-b.at);saveMsgs();rerender()},()=>{msgCol=null});
+  cloud.onSnapshot(snap=>{
+    setSync(true);
+    if(!snap.exists){push();return}
+    const remote=normalize(JSON.parse(JSON.stringify(snap.data())));
+    const merged=mergeState(S,remote);
+    if(canon(merged)!==canon(S)){S=merged;save();rerender()}
+    if(canon(merged)!==canon(remote))push();
+  },()=>{cloud=null;setSync(false)});
+}catch(e){}})();
+
+/* ---------- helpers ---------- */
+const app=document.getElementById('app');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const pf=(list,w)=>rnd(list.filter(s=>s.fits(w))); // a random sentence pattern that makes sense for this word
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+function pickWords(n,pool){ // words missed before come back more often
+  const m=S.players[who].miss;
+  return (pool||WORDS).map(w=>({w,r:Math.random()+Math.min(m[w.id]||0,4)*0.3})).sort((a,b)=>b.r-a.r).slice(0,n).map(o=>o.w);
+}
+function distract(id,n){return shuffle(WORDS.filter(w=>w.id!==id)).slice(0,n)}
+
+/* ---------- audio ---------- */
+let jaVoice=null,enVoice=null,actx=null;
+const hasTTS='speechSynthesis' in window;
+function loadVoices(){if(!hasTTS)return;const v=speechSynthesis.getVoices();
+  jaVoice=v.find(x=>/^ja/i.test(x.lang))||jaVoice;
+  enVoice=v.find(x=>/^en[-_]US/i.test(x.lang))||v.find(x=>/^en/i.test(x.lang))||enVoice;}
+if(hasTTS){loadVoices();speechSynthesis.onvoiceschanged=loadVoices;}
+// One shared player: iPhone and iPad only allow playback without a tap on an element a tap has already started.
+const player=new Audio();player.preload='auto';let curFin=null;
+// Clips that did not fit the artifact's file limit arrive in one bundle (audio/pack2.js) as base64.
+const packs={};const loadPack=p=>packs[p]||(packs[p]=new Promise(res=>{const s=document.createElement('script');s.src='audio/'+p+'.js';s.onload=()=>res(true);s.onerror=()=>res(false);document.head.appendChild(s)}));
+// The first tap anywhere unlocks the player, so later clips can start without a tap even after an awaited load.
+document.addEventListener('pointerdown',()=>{if(!curFin){try{player.src='data:audio/wav;base64,UklGRgQCAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YeABAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA=';const p=player.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}}},{once:true,capture:true});
+const SPEEDS={normal:1,slow:0.82,slower:0.68};let speed='slow';try{const v=localStorage.getItem('np-speed');if(SPEEDS[v])speed=v}catch(e){}
+function speak(text,lang){
+  return new Promise(res=>{
+    let done=false;const fin=()=>{if(!done){done=true;if(curFin===fin)curFin=null;setPlaying(false);res()}};
+    if(curFin)curFin();curFin=fin;setPlaying(true);
+    const file=RECORDED[(lang==='en'?'en':'ja')+'|'+text];
+    if(file){
+      const go=src=>{try{player.pause();player.onended=fin;player.onerror=()=>{if(!done)tts()};player.src=src;const r=lang==='en'?1:SPEEDS[speed];player.defaultPlaybackRate=r;player.playbackRate=r;if('preservesPitch' in player)player.preservesPitch=true;
+        const p=player.play();
+        if(p&&p.then)p.then(()=>nudge(false)).catch(e=>{if(done)return;if(e&&e.name==='NotAllowedError'){nudge(true);fin()}else if(!e||e.name!=='AbortError')tts()});
+        setTimeout(fin,12000);
+      }catch(e){tts()}};
+      if(file.indexOf('b:')===0){const parts=file.split(':');loadPack(parts[1]).then(()=>{if(done)return;const d=window.NP_AUDIO&&window.NP_AUDIO[parts[2]];if(d)go('data:audio/mpeg;base64,'+d);else tts()})}else go('audio/'+file);
+      return}
+    tts();
+    function tts(){
+      if(!hasTTS){setTimeout(fin,300);return}
+      try{if(speechSynthesis.speaking||speechSynthesis.pending)speechSynthesis.cancel(); // an unconditional cancel() can swallow the next utterance on iOS
+        const u=new SpeechSynthesisUtterance(text);let started=false;
+        u.lang=lang==='en'?'en-US':'ja-JP';const vc=lang==='en'?enVoice:jaVoice;if(vc)u.voice=vc;
+        u.rate=lang==='en'?0.95:0.8*SPEEDS[speed];u.onstart=()=>{started=true;nudge(false)};u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);
+        setTimeout(()=>{if(!started&&!done)nudge(true)},1200); // the device blocked automatic playback: ask for a tap
+        setTimeout(fin,Math.max(2500,text.length*420));
+      }catch(e){fin()}
+    }
+  });
+}
+function nudge(on){const b=document.querySelector('.speaker'),l=document.getElementById('line');
+  if(b)b.classList.toggle('nudge',on);if(l&&l.classList.contains('hintline'))l.textContent=on?'Tap the speaker to listen.':(l.dataset.d||'Tap the picture you heard. Tap the speaker to hear it again.')}
+function setPlaying(on){const b=document.querySelector('.speaker');if(b)b.classList.toggle('playing',on)}
+function tone(kind){
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();
+    const seq={ok:[660,880],bad:[196],win:[523,659,784,1047]}[kind]||[440];
+    seq.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type=kind==='bad'?'triangle':'sine';o.frequency.value=f;
+      const t=actx.currentTime+i*0.11;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.16,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.24);
+      o.connect(g).connect(actx.destination);o.start(t);o.stop(t+0.26)});
+  }catch(e){}
+}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+// a question may be several clips in a row (levels added in v16 chain existing recordings instead of needing new ones)
+async function sayQ(q){if(!q)return;if(q.says){for(const s of q.says){if(!G||G.qs[G.i]!==q)return;await speak(s);await wait(350)}}else await speak(q.say)}
+
+/* ---------- microphone check for いってみよう (older child only) ----------
+   Uses the browser's own Japanese speech recognition. Matching is lenient on purpose: recognisers mishear children,
+   so a near match passes, a grown-up can overrule a miss, and if the device refuses the microphone the game
+   quietly goes back to the "I said it" button. */
+const SR=null /* public build: speech recognition off (Chrome sends audio to Google) */;
+let micPref=true;try{if(localStorage.getItem('np-mic')==='off')micPref=false}catch(e){}
+let micBroken='',rec=null,micSilent=0;
+// Some pages show the app inside a frame that is not allowed to use the microphone. Some browsers report that
+// as an error, iPhone and iPad just never answer. Either way, remember it so the game does not ask her to speak into nothing.
+try{micBroken=localStorage.getItem('np-mic-broken')||''}catch(e){}
+try{if(document.permissionsPolicy&&!document.permissionsPolicy.allowsFeature('microphone'))micBroken='blocked-by-page'}catch(e){}
+const micFail=code=>{micBroken=code;try{localStorage.setItem('np-mic-broken',code)}catch(e){}};
+const micOk=()=>{micBroken='';micSilent=0;try{localStorage.removeItem('np-mic-broken')}catch(e){}};
+const micOn=()=>!!SR&&micPref&&!micBroken&&who==='big';
+const MICSVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5V21"/></svg>';
+// the recogniser answers in mixed kanji/kana; fold the forms the content can produce back to kana (longer forms first)
+const KANJI=[['行ってきます','いってきます'],['行って来ます','いってきます'],['分からない','わからない'],['解らない','わからない'],['分かった','わかった'],['解った','わかった'],['手伝って','てつだって'],['出来た','できた'],['お早う','おはよう'],['只今','ただいま'],['絵の具','えのぐ'],['絵具','えのぐ'],['お弁当','おべんとう'],['弁当','べんとう'],['鉛筆','えんぴつ'],['椅子','いす'],['時計','とけい'],['先生','せんせい'],['友達','ともだち'],['友だち','ともだち'],['貸して','かして'],['私の','わたしの'],['有る','ある'],['無い','ない'],['鞄','かばん'],['鋏','はさみ'],['本','ほん'],['お祖母ちゃん','おばあちゃん'],['お婆ちゃん','おばあちゃん'],['お祖父ちゃん','おじいちゃん'],['お爺ちゃん','おじいちゃん'],['お母さん','おかあさん'],['お父さん','おとうさん'],['女の子','おんなのこ'],['男の子','おとこのこ'],['女の人','おんなのひと'],['男の人','おとこのひと'],['赤ちゃん','あかちゃん'],
+ ['一人','ひとり'],['1人','ひとり'],['１人','ひとり'],['二人','ふたり'],['2人','ふたり'],['２人','ふたり'],['三人','さんにん'],['3人','さんにん'],['３人','さんにん'],
+ ['一匹','いっぴき'],['1匹','いっぴき'],['１匹','いっぴき'],['二匹','にひき'],['2匹','にひき'],['２匹','にひき'],['三匹','さんびき'],['3匹','さんびき'],['３匹','さんびき'],
+ ['一羽','いちわ'],['1羽','いちわ'],['１羽','いちわ'],['二羽','にわ'],['2羽','にわ'],['２羽','にわ'],['三羽','さんわ'],['3羽','さんわ'],['３羽','さんわ'],
+ ['会いたい','あいたい'],['逢いたい','あいたい'],['遊びたい','あそびたい'],['遊ぶ','あそぶ'],['元気','げんき'],['居ない','いない'],['居ます','います'],['犬','いぬ'],['猫','ねこ'],['兎','うさぎ'],['鳥','とり'],['魚','さかな'],['お休み','おやすみ'],['有難う','ありがとう'],['今日は','こんにちは'],
+ ['林檎','りんご'],['苺','いちご'],['蜜柑','みかん'],['葡萄','ぶどう'],['西瓜','すいか'],['お水','みず'],['水','みず'],['牛乳','ぎゅうにゅう'],['玉子','たまご'],['卵','たまご'],['お握り','おにぎり'],['御握り','おにぎり'],['下さい','ください'],['大好き','だいすき'],['好き','すき'],['欲しい','ほしい'],['何処','どこ'],['何','なに'],['一つ','ひとつ'],['1つ','ひとつ'],['１つ','ひとつ'],['二つ','ふたつ'],['2つ','ふたつ'],['２つ','ふたつ'],['三つ','みっつ'],['3つ','みっつ'],['３つ','みっつ'],['頂きます','いただきます'],['戴きます','いただきます'],['ご馳走様','ごちそうさま'],['御馳走様','ごちそうさま'],['ご馳走さま','ごちそうさま'],['美味しい','おいしい']];
+function norm(s){s=String(s||'');for(const [k,v] of KANJI)s=s.split(k).join(v);
+  return s.replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60)).replace(/[\s、。,.，．！？!?・「」『』〜~]/g,'')}
+function lev(a,b){const d=Array.from({length:a.length+1},(_,i)=>[i]);for(let j=1;j<=b.length;j++)d[0][j]=j;
+  for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length]}
+function understood(alts,target){const t=norm(target);if(!t)return false;
+  return alts.some(x=>{const n=norm(x);if(!n)return false;if(n.includes(t))return true;return 1-lev(n,t)/Math.max(n.length,t.length)>=(t.length<=3?0.66:0.72)})}
+function micMsg(t){const m=document.getElementById('micmsg');if(m)m.textContent=t}
+function micLive(on){const b=document.querySelector('.micbtn');if(b)b.classList.toggle('live',on)}
+function micStage(q,tk){
+  G.micTries=0;
+  document.getElementById('slot').innerHTML=`<div class="stack" style="align-items:center">${q.pattern?`<p class="pattern jp">${esc(q.pattern)}</p>`:''}
+    <button class="micbtn" data-act="mic" aria-label="Speak">${MICSVG}</button><span class="ringlabel jp" id="micmsg">マイクを おして、にほんごで いってね</span>
+    <p class="heard jp" id="heard" hidden></p>
+    <div class="row"><button class="btn jp" data-act="sayhint">ヒント</button><button class="btn jp" data-act="giveup">こたえを きく</button></div><p class="reveal" id="hintbox" hidden></p></div>`;
+}
+function listen(){
+  if(!G)return;const q=G.qs[G.i],tk=G.token;hush();let got=false;
+  try{rec=new SR();rec.lang='ja-JP';rec.interimResults=false;rec.maxAlternatives=5;rec.continuous=false;
+    rec.onresult=e=>{got=true;micSilent=0;const alts=[];for(const r of e.results)for(const a of r)alts.push(a.transcript);micResult(q,tk,alts)};
+    rec.onerror=e=>{got=true;if(['not-allowed','service-not-allowed','audio-capture','network'].includes(e.error)){micFail(e.error);if(G&&tk===G.token)showQ()}else if(e.error!=='aborted')micMsg('きこえなかったよ。もういちど！')};
+    rec.onend=()=>{micLive(false);if(!got&&G&&tk===G.token){micSilent++;if(micSilent>=2){micFail('no-result');showQ()}else micMsg('きこえなかったよ。もういちど！')}};
+    rec.start();micLive(true);micMsg('きいているよ…');setTimeout(()=>{try{rec.stop()}catch(e){}},8000);
+  }catch(e){micFail('start-failed');showQ()}
+}
+async function micResult(q,tk,alts){
+  if(!G||tk!==G.token)return;const heard=alts[0]||'';
+  if(q.targets?q.targets.every(t=>understood(alts,t)):understood(alts,q.show)){
+    let pts=[100,70,40][Math.min(G.micTries,2)];if(G.hint)pts=Math.min(pts,60);
+    if(G.micTries===0&&!G.hint){G.combo++;pts+=Math.min(50,(G.combo-1)*10)}else G.combo=0;
+    G.score+=pts;G.marks[G.i]=G.micTries===0&&!G.hint?'ok':'meh';tone('ok');
+    document.getElementById('slot').innerHTML=`<p class="passmsg jp">つうじた！ +${pts}</p><p class="reveal">${esc(q.show)}<small>${esc(q.en)}</small></p><p class="heard jp">きこえた：「${esc(heard)}」</p>`;
+    await sayQ(q);await wait(500);if(G&&tk===G.token)next();
+  }else{
+    G.micTries++;G.combo=0;tone('bad');
+    const hd=document.getElementById('heard');if(hd){hd.hidden=false;hd.textContent='きこえた：「'+heard+'」'}
+    if(G.micTries>=3)giveUp();else micMsg('もういちど いってみよう');
+  }
+}
+async function giveUp(){
+  if(!G)return;const q=G.qs[G.i],tk=G.token;try{if(rec)rec.abort()}catch(e){}
+  document.getElementById('slot').innerHTML=`<p class="reveal">${esc(q.show)}<small>${esc(q.en)}</small></p>`;
+  await sayQ(q);if(!G||tk!==G.token)return;
+  document.getElementById('slot').insertAdjacentHTML('beforeend',`<div class="row" style="margin-top:18px"><button class="btn" data-act="again">Hear again</button><button class="btn main jp" data-act="micnext">つぎへ</button>${G.micTries>0?'<button class="btn" data-act="micoverride">Grown-up: she said it right</button>':''}</div>`);
+}
+function micTest(){
+  const out=document.getElementById('mictest');if(!out)return;if(!SR){out.textContent='This browser has no speech recognition.';return}
+  try{const r=new SR();r.lang='ja-JP';r.maxAlternatives=3;out.textContent='Listening… say something in Japanese.';let done=false;
+    r.onresult=e=>{done=true;out.textContent='Heard: 「'+e.results[0][0].transcript+'」 — the microphone works on this device.';micOk();grown()};
+    r.onerror=e=>{done=true;micFail(e.error);out.textContent='Did not work on this device (code: '+e.error+'). いってみよう will use the "I said it" button.'};
+    r.onend=()=>{if(!done){done=true;micFail('no-result');out.textContent='Nothing came back, so いってみよう will use the "I said it" button instead.'}};
+    r.start();setTimeout(()=>{try{r.stop()}catch(e){}},8000);
+  }catch(e){micFail('start-failed');out.textContent='Did not start ('+e.message+').'}
+}
+const hush=()=>{try{if(rec)rec.abort()}catch(e){}try{player.pause()}catch(e){}if(hasTTS)try{speechSynthesis.cancel()}catch(e){}};
+
+/* ---------- games and levels ---------- */
+const FAMS={
+ listen:{ic:'👂',jp:'きいて タップ',en:'Listen and tap the picture',lv:['Single words','Words and short sentences','Longer sentences, six pictures','Two sentences in a row: tap both','Hear it once only, six pictures','Read it: tap the written sentence']},
+ shop:{ic:'🛒',jp:'おみせやさん',en:'Fill the shop order',lv:null},
+ detective:{ic:'🔎',jp:'たんてい',en:'Solve it from the clues',lv:['Two easy clues, three pictures','More clues, and some say "not"','Clues by ear only','By ear, six pictures','Clues play once only','Read the clues yourself, no voice']},
+ sayit:{ic:'💬',jp:'いってみよう',en:'Say it out loud',lv:['Listen first, then copy','Words from memory','Short sentences, with the pattern shown','Challenge sentences','Everything mixed, ten in a row, no picture','Two sentences in one go']}
+};
+// The younger child's games: three open levels each, no scores and no locks.
+const LFAMS={
+ tap2:{ic:'👂',jp:'どっち？',en:'Which one?',lv:['Two pictures','Three pictures','Four pictures, and some short sentences']},
+ copy:{ic:'🦜',jp:'まねっこ',en:'Copy me',lv:['Single words','Words and phrases','Short sentences']}
+};
+const ALLF=Object.assign({},FAMS,LFAMS);
+const TEAM={ic:'🧑‍🤝‍🧑',jp:'ふたりで',en:'Big sister reads it, little brother finds it',lv:['Words, three pictures','Short sentences, four pictures','How many? Counting sentences']};
+const famTitle=f=>f==='team'?TEAM:f==='shop'&&PK.shopTitle?PK.shopTitle:ALLF[f];
+const famLv=f=>f==='shop'?PK.shopLv:ALLF[f].lv;
+const NQ={tap2:6,tap2b:6,tap2c:6,copy:6,copyb:6,copyc:6,listen1:8,listen:10,listen3:10,shop1:8,shop:8,shop3:8,detective1:6,detective:8,detective3:8,sayit0:8,sayit1:8,sayit:8,sayit3:8,listen4:8,listen5:10,listen6:10,shop4:6,shop5:8,shop6:8,detective4:8,detective5:8,detective6:8,sayit5:10,sayit6:8};
+const GAMES={};
+// Level keys: "<game>1", "<game>" (level 2, the original game), "<game>3", then "<game>4".."<game>6" (added in v16).
+const lvKeys=f=>f==='sayit'?['sayit0','sayit1','sayit','sayit3','sayit5','sayit6']:LFAMS[f]?[f,f+'b',f+'c']:[f+'1',f,f+'3',f+'4',f+'5',f+'6'];
+for(const f in ALLF)lvKeys(f).forEach((k,i)=>{GAMES[k]={n:NQ[k],fam:f,level:i+1}});
+['team1','team2','team3'].forEach((k,i)=>{GAMES[k]={n:8,fam:'team',level:i+1}});
+function maxScore(n){let t=0;for(let k=1;k<=n;k++)t+=100+Math.min(50,(k-1)*10);return t}
+function starsFor(score,n){const r=score/maxScore(n);return r>=.9?3:r>=.7?2:r>=.4?1:0}
+// A level opens once the one before it has two stars. The first two levels (three for いってみよう) are always open.
+const lvOpen=(P,f,k)=>{const ks=lvKeys(f),i=ks.indexOf(k);if(i<(f==='sayit'?3:2))return true;const p=ks[i-1];return starsFor(P.best[bk(p)]||0,GAMES[p].n)>=2};
+
+/* ---------- screens ---------- */
+const weekSwitch=()=>`<div class="weeks" role="group" aria-label="Week">${Object.values(PACKS).map(p=>`<button class="wk ${p.id===PK.id?'on':''}" data-act="week" data-v="${p.id}"><small>Week ${p.week}</small><b class="jp">${p.jp}</b></button>`).join('')}</div>`;
+function home(){
+  screen='home';G=null;hush();const p=S.players;
+  app.innerHTML=`
+  <div class="hero"><span class="eyebrow">Week ${PK.week} · ${esc(PK.en)}</span>
+    <h1><span class="jp">にほんご</span> Picnic</h1><p>Listen, solve, and say it out loud. Who is playing?</p></div>
+  ${weekSwitch()}
+  <div class="stack">
+    <button class="card-btn" data-act="hub" data-who="big"><span class="avatar big">🦊</span><span class="nm">${esc(p.big.name)}</span><span class="meta">Puzzles and high scores</span><span class="side"><span class="num">${p.big.stars}</span><span class="stars">★</span></span></button>
+    <button class="card-btn" data-act="hub" data-who="little"><span class="avatar little">🐣</span><span class="nm">${esc(p.little.name)}</span><span class="meta">Listen and copy</span><span class="side"><span class="num">${p.little.stars}</span><span class="stars">★</span></span></button>
+    <button class="card-btn" data-act="team"><span class="avatar team">🧑‍🤝‍🧑</span><span class="nm jp">ふたりで</span><span class="meta">Big sister reads it, little brother finds it</span><span class="side"><span class="num">${S.team.stars}</span><span class="stars">★</span></span></button>
+  </div>
+  <div class="foot">${MSGS.length?`<button class="textlink" data-act="mail">💌 Messages${newMail().length?' · '+newMail().length+' new':''} →</button>`:''}<button class="textlink" data-act="grown">For grown-ups: this week's phrases and setup →</button>
+    <span class="sync ${syncOn?'on':''}"><i></i>${syncLabel()}</span></div>`;
+}
+function hub(){
+  screen='hub';G=null;const P=S.players[who];
+  const done=!!S.missions[today()];
+  const little=who==='little';
+  const tiles=Object.keys(little?LFAMS:FAMS).map(f=>{const F=famTitle(f),LV=famLv(f),keys=lvKeys(f);
+    const tot=keys.reduce((s,k)=>s+(little?(P.best[bk(k)]||0):(P.best[bk(k)]?starsFor(P.best[bk(k)],GAMES[k].n):0)),0);
+    return `<div class="card-btn tile fam"><span class="ic">${F.ic}</span><span class="t">${F.jp}</span><span class="d">${F.en}</span>
+      <span class="side"><small>${little?'Played':'Stars'}</small><span class="num">${little?tot:tot+'/'+keys.length*3}</span></span>
+      <div class="lvrow" role="group" aria-label="Levels">${keys.map((k,i)=>{const b=P.best[bk(k)];const st=!little&&b?starsFor(b,GAMES[k].n):0;const locked=!little&&!lvOpen(P,f,k);
+        return `<button class="lv" data-act="play" data-game="${k}" ${locked?'disabled':''} aria-label="Level ${i+1}${locked?', locked':''}" title="${esc(LV[i])}"><b>${locked?'🔒':i+1}</b><span class="stars">${little?(b?b+'×':'–'):'★'.repeat(st)+'☆'.repeat(3-st)}</span></button>`}).join('')}</div></div>`});
+  app.innerHTML=`
+  <div class="bar"><button class="ghost" data-act="home">← Players</button><span class="grow"></span><span class="pill"><span>Stars</span><b class="num">${P.stars}</b></span><span class="pill"><span>Missions</span><b class="num">${Object.keys(S.missions).length}</b></span></div>
+  <div class="hub"><span class="eyebrow">Week ${PK.week} · <span class="jp">${PK.jp}</span></span><h2>${esc(P.name)}<span class="jp">、あそぼう！</span></h2></div>
+  <div class="tiles">${tiles.join('')}</div>
+  ${mailBanner()}${little?'':`<button class="card-btn wishcard" data-act="wish"><span class="ic">🗳️</span><span class="t">つぎの テーマを えらぼう</span><span class="d">${S.wish.theme?'Your pick: '+esc((THEMES[S.wish.theme]||{}).jp||'')+' · tap to change':'You choose what next week is about'}</span></button>`}
+  <div class="mission"><span class="eyebrow">${esc(PK.mission.who)}</span><h3>${PK.mission.title}</h3><ul>${PK.mission.items.map(i=>`<li>${i}</li>`).join('')}</ul>
+    <button class="ghost" data-act="mission" ${done?'disabled':''}>${done?'Done today ✓':'Grown-up: mark as done'}</button></div>`;
+}
+
+function teamHub(){
+  screen='team';G=null;hush();who='big';
+  app.innerHTML=`<div class="bar"><button class="ghost" data-act="home">← Players</button><span class="grow"></span><span class="pill"><span>Team stars</span><b class="num">${S.team.stars}</b></span></div>
+  <div class="hub"><span class="eyebrow">Week ${PK.week} · <span class="jp">${PK.jp}</span></span><h2 class="jp">ふたりで あそぼう</h2></div>
+  <div class="note">${esc(S.players.big.name)} reads the Japanese out loud. ${esc(S.players.little.name)} listens to his sister and taps the picture. Sit side by side with one screen. If the word is hard to read, the 🔊 button helps.</div>
+  <div class="stack">${['team1','team2','team3'].map((k,i)=>{const b=S.team.best[bk(k)];const st=b?starsFor(b,8):0;
+    return `<button class="card-btn tile" data-act="play" data-game="${k}"><span class="ic">${i+1}</span><span class="t">レベル${i+1}</span><span class="d">${TEAM.lv[i]}</span><span class="side"><small>Team best</small><span class="num">${b||'—'}</span><span class="stars">${'★'.repeat(st)}${'☆'.repeat(3-st)}</span></span></button>`}).join('')}</div>`;
+}
+/* Grandma's messages unlock as the girls earn stars: a family reward, not points. */
+const msgReady=m=>totalStars()>=(m.need||0);
+const newMail=()=>MSGS.filter(m=>msgReady(m)&&!S.opened[m.id]);
+function mailBanner(){
+  const nw=newMail();if(nw.length)return `<button class="card-btn mailcard" data-act="openmsg" data-id="${nw[0].id}"><span class="ic">💌</span><span class="t">${esc(nw[0].from)}<span class="jp">から メッセージ！</span></span><span class="d">Tap to open</span></button>`;
+  const locked=MSGS.filter(m=>!msgReady(m)).sort((a,b)=>a.need-b.need)[0];
+  return locked?`<p class="sub mailwait">💌 <span class="jp">つぎの メッセージまで あと</span> ${locked.need-totalStars()} ★</p>`:'';
+}
+function mail(){
+  screen='mail';G=null;hush();
+  app.innerHTML=`<div class="bar"><button class="ghost" data-act="home">← Players</button></div>
+  <div class="hub"><span class="eyebrow">Messages</span><h2 class="jp">メッセージ</h2></div>
+  <div class="stack">${MSGS.length?MSGS.slice().reverse().map(m=>msgReady(m)?`<button class="card-btn tile" data-act="openmsg" data-id="${m.id}"><span class="ic">${S.opened[m.id]?'📭':'💌'}</span><span class="t">${esc(m.from)}</span><span class="d">${S.opened[m.id]?'Tap to hear it again':'New'}</span></button>`
+    :`<div class="card-btn tile fam"><span class="ic">🔒</span><span class="t">${esc(m.from)}</span><span class="d"><span class="jp">あと</span> ${m.need-totalStars()} ★</span></div>`).join(''):'<p class="sub">No messages yet. A grown-up can add one from the grown-ups page.</p>'}</div>`;
+}
+function openMsg(id){
+  const m=MSGS.find(x=>x.id===id);if(!m||!msgReady(m))return;screen='msg';hush();
+  if(!S.opened[id]){S.opened[id]=true;save();push();tone('win')}
+  app.innerHTML=`<div class="stage"><div class="pic">💌</div><h2><span>${esc(m.from)}</span><span class="jp">から</span></h2>
+    ${m.text?`<p class="reveal jp">${esc(m.text)}</p>`:''}${m.audio?`<button class="speaker" data-act="msgplay" data-id="${id}" aria-label="Play the message">${SPK}</button>`:''}
+    <div class="row"><button class="btn main jp" data-act="home">もどる</button><button class="btn" data-act="mail">All messages</button></div></div>`;
+  if(m.audio)playData(m.audio);
+}
+function playData(src){try{if(curFin)curFin();player.pause();player.onended=()=>setPlaying(false);player.onerror=()=>setPlaying(false);player.src=src;player.defaultPlaybackRate=1;player.playbackRate=1;setPlaying(true);const p=player.play();if(p&&p.catch)p.catch(()=>setPlaying(false))}catch(e){}}
+/* recording a message (grown-ups page) */
+let mrec=null,draft='';
+async function recStart(){
+  const out=document.getElementById('recmsg');if(!out)return;
+  try{const st=await navigator.mediaDevices.getUserMedia({audio:true});const chunks=[];mrec=new MediaRecorder(st);
+    mrec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+    mrec.onstop=()=>{st.getTracks().forEach(t=>t.stop());const blob=new Blob(chunks,{type:mrec.mimeType||'audio/mp4'});const fr=new FileReader();
+      fr.onload=()=>{const d=String(fr.result);const o=document.getElementById('recmsg');if(d.length>230000){draft='';if(o)o.textContent='That was too long to save. Keep it under about 10 seconds and try again.'}else{draft=d;if(o)o.textContent='Recorded. Play it back, then save the message.'}};fr.readAsDataURL(blob)};
+    mrec.start();out.textContent='Recording… tap Stop when you are done (15 seconds at most).';setTimeout(()=>{if(mrec&&mrec.state==='recording')mrec.stop()},15000);
+  }catch(e){out.textContent='This device did not allow recording in this browser ('+(e&&e.name||'error')+'). Save a written message instead.'}
+}
+function saveMsg(){
+  const out=document.getElementById('recmsg'),from=(document.getElementById('msg-from').value||'').trim()||'おばあちゃん',text=(document.getElementById('msg-text').value||'').trim();
+  if(!draft&&!text){if(out)out.textContent='Record something or write a line first.';return}
+  const waiting=MSGS.filter(m=>!msgReady(m)).length;
+  const m={id:'m'+Date.now(),at:Date.now(),from,text,audio:draft,need:totalStars()+6*(waiting+1)};
+  MSGS.push(m);saveMsgs();draft='';if(msgCol){const c=Object.assign({},m);delete c.id;msgCol.doc(m.id).set(c).catch(()=>{})}
+  grown();const o=document.getElementById('recmsg');if(o)o.textContent='Saved. It opens for the kids after '+(m.need-totalStars())+' more stars.';
+}
+function delMsg(id){MSGS=MSGS.filter(m=>m.id!==id);saveMsgs();if(msgCol)msgCol.doc(id).delete().catch(()=>{});grown()}
+/* she chooses next week's theme and her favourite words; Dad (and Claude) read the pick from the saved state */
+const THEMES={
+ zoo:{jp:'どうぶつえん',en:'Zoo animals',ic:'🦁',w:[['ぞう','elephant','🐘'],['きりん','giraffe','🦒'],['ライオン','lion','🦁'],['さる','monkey','🐵'],['パンダ','panda','🐼'],['とら','tiger','🐯'],['くま','bear','🐻'],['ペンギン','penguin','🐧'],['かば','hippo','🦛'],['しまうま','zebra','🦓'],['わに','crocodile','🐊'],['へび','snake','🐍'],['コアラ','koala','🐨'],['ぶた','pig','🐷'],['うし','cow','🐮'],['うま','horse','🐴']]},
+ ride:{jp:'のりもの',en:'Things that go',ic:'🚄',w:[['くるま','car','🚗'],['バス','bus','🚌'],['でんしゃ','train','🚃'],['しんかんせん','bullet train','🚄'],['ひこうき','airplane','✈️'],['ふね','ship','🚢'],['じてんしゃ','bicycle','🚲'],['トラック','truck','🚚'],['きゅうきゅうしゃ','ambulance','🚑'],['しょうぼうしゃ','fire engine','🚒'],['パトカー','police car','🚓'],['タクシー','taxi','🚕'],['ロケット','rocket','🚀'],['ヘリコプター','helicopter','🚁'],['バイク','motorbike','🏍️'],['ちかてつ','subway','🚇']]},
+ school:{jp:'がっこう',en:'School',ic:'🎒',w:[['えんぴつ','pencil','✏️'],['ほん','book','📖'],['かばん','school bag','🎒'],['はさみ','scissors','✂️'],['ノート','notebook','📓'],['いす','chair','🪑'],['とけい','clock','🕐'],['えのぐ','paints','🎨'],['ボール','ball','⚽'],['せんせい','teacher','🧑‍🏫'],['クレヨン','crayon','🖍️'],['じょうぎ','ruler','📏'],['パソコン','computer','💻'],['おべんとう','lunch box','🍱'],['がっこう','school','🏫'],['ともだち','friends','🧑‍🤝‍🧑']]},
+ nature:{jp:'そらと しぜん',en:'Sky and nature',ic:'🌈',w:[['たいよう','sun','☀️'],['つき','moon','🌙'],['ほし','star','⭐'],['くも','cloud','☁️'],['あめ','rain','🌧️'],['ゆき','snow','❄️'],['かぜ','wind','🌬️'],['にじ','rainbow','🌈'],['やま','mountain','⛰️'],['うみ','sea','🌊'],['かわ','river','🏞️'],['き','tree','🌳'],['はな','flower','🌸'],['かみなり','lightning','⚡'],['ひ','fire','🔥'],['いし','rock','🪨']]},
+ clothes:{jp:'ふく',en:'Clothes',ic:'👗',w:[['シャツ','shirt','👕'],['ズボン','trousers','👖'],['くつ','shoes','👟'],['ぼうし','hat','🧢'],['くつした','socks','🧦'],['ドレス','dress','👗'],['コート','coat','🧥'],['てぶくろ','gloves','🧤'],['マフラー','scarf','🧣'],['めがね','glasses','👓'],['かさ','umbrella','☂️'],['バッグ','bag','👜'],['きもの','kimono','👘'],['みずぎ','swimsuit','🩱'],['サンダル','sandals','🩴'],['ゆびわ','ring','💍']]},
+ play:{jp:'あそびと スポーツ',en:'Play and sports',ic:'🎈',w:[['ぬいぐるみ','stuffed toy','🧸'],['ふうせん','balloon','🎈'],['たこ','kite','🪁'],['ゲーム','video game','🎮'],['パズル','puzzle','🧩'],['サッカー','soccer','⚽'],['やきゅう','baseball','⚾'],['バスケ','basketball','🏀'],['テニス','tennis','🎾'],['すいえい','swimming','🏊'],['スキー','skiing','⛷️'],['つり','fishing','🎣'],['ギター','guitar','🎸'],['ピアノ','piano','🎹'],['たいこ','drum','🥁'],['おえかき','drawing','🖍️']]}
+};
+let wishDraft={theme:'',words:[]};
+function wish(){
+  screen='wish';G=null;hush();wishDraft={theme:S.wish.theme||'',words:(S.wish.words||[]).slice()};
+  app.innerHTML=`<div class="bar"><button class="ghost" data-act="hub" data-who="big">← All games</button></div>
+  <div class="hub"><span class="eyebrow">You choose next week</span><h2 class="jp">つぎの テーマは どれ？</h2></div>
+  <div class="choices">${Object.keys(THEMES).map(k=>`<button class="choice big ${wishDraft.theme===k?'on':''}" data-act="wtheme" data-v="${k}"><span class="e">${THEMES[k].ic}</span><b>${THEMES[k].jp}</b><small>${THEMES[k].en}</small></button>`).join('')}</div>`;
+}
+function wishWords(){
+  screen='wish';const T=THEMES[wishDraft.theme];if(!T)return wish();
+  app.innerHTML=`<div class="bar"><button class="ghost" data-act="wish">← Themes</button><span class="grow"></span><span class="pill"><span>Picked</span><b class="num">${wishDraft.words.length}/8</b></span></div>
+  <div class="hub"><span class="eyebrow">${T.en}</span><h2 class="jp">${T.jp}：すきな ことばを 8こ えらぼう</h2></div>
+  <div class="choices">${T.w.map(w=>`<button class="choice ${wishDraft.words.includes(w[0])?'on':''}" data-act="wword" data-v="${w[0]}"><span class="e">${w[2]}</span><b>${w[0]}</b><small>${w[1]}</small></button>`).join('')}</div>
+  <div class="row"><button class="btn main jp" data-act="wsave" ${wishDraft.words.length?'':'disabled'}>おとうさんに おくる</button></div>`;
+}
+/* ---------- round setup: every round draws fresh random questions in a shuffled order ---------- */
+function truth(id,c){const f=PK.facts[id];const base=PK.neg[c]||c;if(f.maybe.includes(base))return null;const v=f.is.includes(base);return PK.neg[c]?!v:v}
+function makePuzzle(level,used){
+  const CATS=PK.cats,NEG=PK.neg,K=level>=4?5:level===1?2:3,MAXC=level>=4?4:3; // levels 4-6: six pictures, up to four clues
+  for(let tries=0;tries<400;tries++){
+    const t=rnd(WORDS).id;if(used.includes(t)&&tries<200)continue;
+    const opts=[t,...distract(t,K).map(w=>w.id)];
+    const ok=c=>opts.every(o=>truth(o,c)!==null);
+    const cat=CATS.find(c=>PK.facts[t].is.includes(c));
+    let first=cat;if(level>1&&Math.random()<.35){const negs=Object.keys(NEG).filter(c=>CATS.includes(NEG[c])&&truth(t,c)===true&&ok(c));if(negs.length)first=rnd(negs)}
+    if(!ok(first))continue;
+    const clues=[first];let left=opts.filter(o=>o!==t&&truth(o,first)===true);
+    const cands=shuffle(Object.keys(PK.cl).filter(c=>c!==first&&!CATS.includes(c)&&!CATS.includes(NEG[c])&&truth(t,c)===true&&ok(c)&&(level>1||!NEG[c])));
+    for(const c of cands){if(clues.length>=MAXC||(left.length===0&&clues.length>=2))break;
+      const nl=left.filter(o=>truth(o,c)===true);if(nl.length<left.length||left.length===0){clues.push(c);left=nl}}
+    if(left.length===0&&clues.length>=2)return {t,opts,clues};
+  }
+  if(level>=4)return makePuzzle(2,used);
+  const t=WORDS[0].id;return {t,opts:[t,WORDS[6].id,WORDS[7].id],clues:[PK.cats.find(c=>PK.facts[t].is.includes(c)),PK.facts[t].is[1]]};
+}
+function play(game){
+  const g=GAMES[game],n=g.n,fam=g.fam,lv=g.level;let qs=[];
+  const pics=(w,k)=>shuffle([w,...distract(w.id,k)]).map(o=>({html:o.pic,ok:o.id===w.id}));
+  const wordQ=(w,k)=>({type:'pick',say:w.tts||w.jp,show:w.jp,en:cap(w.en),word:w.id,opts:pics(w,k)});
+  const sentQ=(w,f,k)=>({type:'pick',six:k===5,say:f.tts(w),show:f.jp(w),en:f.en(w),word:w.id,opts:pics(w,k)});
+  const easy=SENT.filter(s=>!s.hard),countable=WORDS.filter(w=>w.cnt);
+  const copyW=w=>({type:'copy',say:w.tts||w.jp,show:w.jp,en:cap(w.en),pic:w.pic});
+  const copyF=f=>({type:'copy',say:f.tts,show:f.jp,en:f.en,pic:f.pic});
+  const sayF=f=>({cue:f.cue,say:f.tts,show:f.jp,en:f.en,pic:f.pic});
+  const others=(ids,k,pool)=>shuffle((pool||WORDS).filter(w=>!ids.includes(w.id))).slice(0,k);
+  if(fam==='listen'){
+    if(lv<=3)pickWords(n).forEach(w=>{if(lv===1||(lv===2&&Math.random()<.4))qs.push(wordQ(w,3));else qs.push(sentQ(w,pf(lv===3?SENT:easy,w),lv===3?5:3))});
+    else if(lv===4){ // two sentences in a row: both pictures must be tapped (existing clips, played one after the other)
+      pickWords(n).forEach(w=>{const w2=others([w.id],1)[0],a=pf(easy,w),b=pf(easy,w2);
+        qs.push({type:'pick',six:true,need:2,says:[a.tts(w),b.tts(w2)],say:a.tts(w),show:a.jp(w)+'　'+b.jp(w2),en:a.en(w)+' / '+b.en(w2),word:w.id,opts:shuffle([w,w2,...others([w.id,w2.id],4)]).map(o=>({html:o.pic,ok:o.id===w.id||o.id===w2.id}))})});
+    }else if(lv===5){ // hear it once only
+      pickWords(n).forEach(w=>{const q=sentQ(w,pf(SENT,w),5);q.once=true;qs.push(q)});
+    }else{ // read it: the choices are written sentences, not pictures
+      pickWords(n).forEach(w=>{const f=pf(SENT,w);const texts=[[f.jp(w),true]];
+        others([w.id],2,WORDS.filter(o=>f.fits(o))).forEach(o=>texts.push([f.jp(o),false]));
+        shuffle(SENT.filter(s=>s!==f&&s.fits(w))).forEach(s=>{if(texts.length<4)texts.push([s.jp(w),false])});
+        qs.push({type:'pick',txt:true,say:f.tts(w),show:f.jp(w),en:f.en(w),word:w.id,opts:shuffle(texts).map(([t,ok])=>({html:'<span class="jp">'+esc(t)+'</span>',ok}))})});
+    }
+  }else if(fam==='tap2'){
+    pickWords(n).forEach(w=>{if(lv===3&&Math.random()<.5)qs.push(sentQ(w,pf(easy,w),3));else qs.push(wordQ(w,lv))});
+  }else if(fam==='shop'){
+    if(lv===3){
+      qs=shuffle(ORD2).slice(0,n).map(o=>{const c1b=rnd(COUNTERS[o.w1.cnt].filter(c=>c.n!==o.c1.n)),c2b=rnd(COUNTERS[o.w2.cnt].filter(c=>c.n!==o.c2.n)),w3=rnd(countable.filter(w=>w!==o.w1&&w!==o.w2));
+        const card=(a,ca,b,cb)=>a.pic.repeat(ca.n)+'<span class="plus">＋</span>'+b.pic.repeat(cb.n);
+        return {type:'pick',multi:true,say:o.tts,show:o.show,en:o.en,word:o.w1.id,opts:shuffle([{html:card(o.w1,o.c1,o.w2,o.c2),ok:true},{html:card(o.w1,c1b,o.w2,o.c2),ok:false},{html:card(o.w1,o.c1,o.w2,c2b),ok:false},{html:card(o.w1,o.c1,w3,o.c2),ok:false}])}});
+    }else if(lv===4){ // three separate orders in a row (existing single-group clips, chained)
+      const card=a=>a.map(([w,c])=>w.pic.repeat(c.n)).join('<span class="plus">＋</span>'),otherC=(ws,c)=>rnd(COUNTERS[c].filter(x=>x.n!==ws.n));
+      for(let i=0;i<n;i++){const ws=shuffle(countable).slice(0,3),right=ws.map(w=>[w,rnd(COUNTERS[w.cnt])]),ss=right.map(([w,c])=>PK.countSay(w,c));
+        const swap=(j,fn)=>right.map((p,k)=>k===j?fn(p):p),ow=rnd(countable.filter(x=>!ws.includes(x)));
+        const opts=[{html:card(right),ok:true},{html:card(swap(0,([w,c])=>[w,otherC(c,w.cnt)])),ok:false},{html:card(swap(2,([w,c])=>[w,otherC(c,w.cnt)])),ok:false},{html:card(swap(1,([w,c])=>[ow,c])),ok:false}];
+        qs.push({type:'pick',multi:true,says:ss.map(s=>s.tts),say:ss[0].tts,show:ss.map(s=>s.show).join(' '),en:ss.map(s=>s.en).join(' / '),word:ws[0].id,opts:shuffle(opts)})}
+    }else if(lv===5){ // be the shopkeeper: tap the food the right number of times
+      pickWords(n,countable).forEach(w=>{const c=rnd(COUNTERS[w.cnt]),s=PK.countSay(w,c);
+        qs.push({type:'build',say:s.tts,show:s.show,en:s.en,word:w.id,want:{[w.id]:c.n},shelf:shuffle([w,...others([w.id],3,countable)])})});
+    }else if(lv===6){ // shopkeeper, two groups in one sentence
+      qs=shuffle(ORD2).slice(0,n).map(o=>{const want={};want[o.w1.id]=o.c1.n;want[o.w2.id]=(want[o.w2.id]||0)+o.c2.n;const ids=Object.keys(want);
+        return {type:'build',say:o.tts,show:o.show,en:o.en,word:o.w1.id,want,shelf:shuffle(ids.map(id=>W[id]).concat(others(ids,4-ids.length,countable)))}});
+    }else pickWords(n,countable).forEach(w=>{const cs=COUNTERS[w.cnt],c=rnd(cs),oc=shuffle(cs.filter(x=>x!==c)),ow=rnd(countable.filter(x=>x!==w)),s=PK.countSay(w,c);
+      const combos=lv===1?[[w,c,true],[w,oc[0],false],[w,oc[1],false]]:[[w,c,true],[w,oc[0],false],[ow,c,false],[ow,oc[1],false]];
+      qs.push({type:'pick',multi:true,say:s.tts,show:s.show,en:s.en,word:w.id,opts:shuffle(combos).map(([x,k,ok])=>({html:x.pic.repeat(k.n),ok}))})});
+  }else if(fam==='team'){
+    // The older child reads the kana aloud (no audio, no picture hint); the younger one has to understand her and tap.
+    who='big';
+    if(lv===1)qs=pickWords(n).map(w=>({type:'teach',read:w.jp,say:w.tts||w.jp,show:w.jp,en:cap(w.en),word:w.id,opts:pics(w,2)}));
+    else if(lv===2)qs=pickWords(n).map(w=>{const f=pf(easy,w);return {type:'teach',read:f.jp(w),say:f.tts(w),show:f.jp(w),en:f.en(w),word:w.id,opts:pics(w,3)}});
+    else qs=pickWords(n,countable).map(w=>{const cs=COUNTERS[w.cnt],c=rnd(cs),oc=shuffle(cs.filter(x=>x!==c)),ow=rnd(countable.filter(x=>x!==w)),s=PK.countSay(w,c);
+      return {type:'teach',multi:true,read:s.show,say:s.tts,show:s.show,en:s.en,word:w.id,opts:shuffle([[w,c,true],[w,oc[0],false],[ow,c,false],[ow,oc[1],false]]).map(([x,k,ok])=>({html:x.pic.repeat(k.n),ok}))}});
+  }else if(fam==='detective'){
+    const used=[];for(let i=0;i<n;i++){const p=makePuzzle(lv,used);used.push(p.t);
+      // level 3-5: by ear (5: the clues play once only); level 6: written clues, no voice
+      qs.push({type:'clue',hidden:lv>=3&&lv<=5,once:lv===5,silent:lv===6,six:p.opts.length>4,clues:p.clues.map(c=>PK.cl[c]),word:p.t,show:W[p.t].jp,en:cap(W[p.t].en),opts:shuffle(p.opts).map(id=>({html:W[id].pic,ok:id===p.t}))})}
+  }else if(game==='sayit0'){
+    qs=pickWords(6).map(copyW).concat(shuffle(FIXED).slice(0,2).map(copyF));
+  }else if(game==='sayit1'){
+    qs=pickWords(6).map(w=>({cue:CUE1,say:w.tts||w.jp,show:w.jp,en:cap(w.en),pic:w.pic})).concat(shuffle(FIXED.filter(f=>!f.late)).slice(0,2).map(sayF)).map(o=>Object.assign({type:'say',pause:6000},o));
+  }else if(game==='sayit'){
+    qs=shuffle(FIXED).slice(0,3).map(sayF).concat(pickWords(5).map(w=>{const f=pf(easy,w);return {cue:f.cue(w),say:f.tts(w),show:f.jp(w),en:f.en(w),pic:w.pic,pattern:f.pattern}})).map(o=>Object.assign({type:'say',pause:9000},o));
+  }else if(game==='sayit3'){
+    const hard=SENT.filter(s=>s.hard);
+    qs=pickWords(n).map(w=>{
+      if(w.cnt&&w.pl&&Math.random()<.3){const c=COUNTERS[w.cnt][1+Math.floor(Math.random()*2)],s=PK.countSay(w,c);return {cue:PK.countCue(w,c),say:s.tts,show:s.show,en:PK.countEn(w,c),pic:w.pic.repeat(c.n)}}
+      const f=pf(hard,w);return {cue:f.cue(w),say:f.tts(w),show:f.jp(w),en:f.en(w),pic:w.pic}}).map(o=>Object.assign({type:'say',pause:9000},o));
+  }else if(game==='sayit5'){ // everything mixed, ten in a row, no picture
+    const hard=SENT.filter(s=>s.hard);
+    qs=shuffle(FIXED).slice(0,2).map(sayF).concat(pickWords(4).map(w=>{const f=pf(easy,w);return {cue:f.cue(w),say:f.tts(w),show:f.jp(w),en:f.en(w)}}),
+      pickWords(4).map(w=>{if(w.cnt&&w.pl&&Math.random()<.5){const c=COUNTERS[w.cnt][1+Math.floor(Math.random()*2)],s=PK.countSay(w,c);return {cue:PK.countCue(w,c),say:s.tts,show:s.show,en:PK.countEn(w,c)}}
+        const f=pf(hard,w);return {cue:f.cue(w),say:f.tts(w),show:f.jp(w),en:f.en(w)}})).map(o=>Object.assign({type:'say',pause:8000,pic:'💬'},o));
+  }else if(game==='sayit6'){ // two sentences in one go: a set phrase plus a sentence about a word
+    qs=pickWords(n).map(w=>{const f=pf(easy,w),g=rnd(FIXED.filter(x=>!x.late)),S1={cue:g.cue,say:g.tts,show:g.jp},S2={cue:f.cue(w),say:f.tts(w),show:f.jp(w)},[A,B]=Math.random()<.5?[S1,S2]:[S2,S1];
+      return {type:'say',pause:10000,pic:w.pic,cue:A.cue+' Then: '+B.cue,cues:[A.cue,B.cue],says:[A.say,B.say],say:A.say,show:A.show+' '+B.show,en:A.cue+' / '+B.cue,targets:[A.show,B.show]}});
+  }else if(fam==='copy'){
+    if(lv===1)qs=pickWords(n).map(copyW);
+    else if(lv===2)qs=pickWords(3).map(copyW).concat(shuffle(FIXED).slice(0,3).map(copyF));
+    else qs=pickWords(n).map(w=>{const f=pf(easy,w);return {type:'copy',pause:4500,say:f.tts(w),show:f.jp(w),en:f.en(w),pic:w.pic}});
+  }
+  qs=shuffle(qs);
+  // never open a round with the same question as last time
+  try{const k='np-last-'+bk(game),last=sessionStorage.getItem(k);if(qs.length>1&&qs[0].say===last)qs.push(qs.shift());sessionStorage.setItem(k,qs[0].say||'')}catch(e){}
+  screen='game';G={game,qs,i:0,score:0,combo:0,marks:[],tries:0,hint:false,lock:false,token:0};
+  showQ();
+}
+function header(){
+  const track=G.qs.map((q,i)=>`<i class="${G.marks[i]||(i===G.i?'now':'')}"></i>`).join('');
+  return `<div class="bar"><button class="ghost" data-act="quit">Stop</button><div class="track">${track}</div>${who==='big'?`${G.combo>1?`<span class="combo">Combo ×${G.combo}</span>`:''}<span class="pill"><span>Score</span><b class="num">${G.score}</b></span>`:''}</div>`;
+}
+function showQ(){
+  const q=G.qs[G.i];G.tries=0;G.hint=false;G.lock=false;const tk=++G.token;
+  if(q.type==='pick'){
+    const d=(q.need>1?'Tap both pictures you heard.':q.txt?'Tap the sentence you heard.':'Tap the picture you heard.')+(q.once?' It plays once. One more tap on the speaker if you missed it.':' Tap the speaker to hear it again.');
+    app.innerHTML=header()+`<div class="stage"><button class="speaker" data-act="replay" aria-label="Hear it again">${SPK}</button>
+      <p class="hintline" id="line" data-d="${esc(d)}">${esc(d)}</p>
+      <div class="opts ${q.six?'six':''} ${q.txt?'text':''}">${q.opts.map((o,k)=>`<button class="opt ${q.multi?'multi':''} ${q.txt?'txt':''}" data-act="ans" data-k="${k}">${o.html}</button>`).join('')}</div></div>`;
+    G.got=0;sayQ(q);
+  }else if(q.type==='build'){
+    const d='Tap what you heard, as many times as you heard it. Then tap はい、どうぞ.';G.basket={};
+    app.innerHTML=header()+`<div class="stage"><button class="speaker" data-act="replay" aria-label="Hear it again">${SPK}</button>
+      <p class="hintline" id="line" data-d="${esc(d)}">${esc(d)}</p>
+      <div class="basket" id="basket"><span class="empty">🧺</span></div>
+      <div class="shelf">${q.shelf.map(w=>`<button class="shelfitem" data-act="bput" data-id="${w.id}"><span>${w.pic}</span><small class="jp">${esc(w.jp)}</small></button>`).join('')}</div>
+      <div class="row"><button class="btn" data-act="bclear">Start over</button><button class="btn main jp" data-act="bdone">はい、どうぞ</button></div></div>`;
+    sayQ(q);
+  }else if(q.type==='teach'){
+    app.innerHTML=header()+`<div class="stage"><span class="role big">🦊 ${esc(S.players.big.name)}<span class="jp">、よんで あげて！</span></span>
+      <p class="readbig jp">${esc(q.read)}</p>
+      <button class="textlink" data-act="teachhelp">🔊 <span class="jp">たすけて</span> · hear it (−30 points)</button>
+      <span class="role little">🐣 ${esc(S.players.little.name)}<span class="jp">、どれ？</span></span>
+      <div class="opts">${q.opts.map((o,k)=>`<button class="opt ${q.multi?'multi':''}" data-act="ans" data-k="${k}">${o.html}</button>`).join('')}</div>
+      <p class="hintline" id="line"></p></div>`;
+  }else if(q.type==='clue'){
+    app.innerHTML=header()+`<div class="stage"><p class="cue jp">${PK.cats.includes('person')?'だれ？ なに？':'これは なに？'}</p>
+      <div class="clues">${q.clues.map((c,k)=>`<button class="clue" data-act="clue" data-k="${k}">${q.silent?'':SPK}<span><em ${q.hidden?'':'hidden'}>ヒント ${k+1}</em><b ${q.hidden?'hidden':''}>${esc(c[0])}</b><small hidden>${esc(c[2])}</small></span></button>`).join('')}</div>
+      <button class="textlink" data-act="hint">${q.hidden?'Show the clues in writing':'Show English hints'} (−30 points)</button>
+      <div class="opts ${q.six?'six':''}">${q.opts.map((o,k)=>`<button class="opt" data-act="ans" data-k="${k}">${o.html}</button>`).join('')}</div>
+      <p class="hintline" id="line"></p></div>`;
+    if(!q.silent)(async()=>{for(const c of q.clues){if(!G||tk!==G.token)return;await speak(c[1]);await wait(250)}
+      if(q.once&&G&&tk===G.token)document.querySelectorAll('.clue').forEach(b=>b.disabled=true)})();
+  }else{
+    app.innerHTML=header()+`<div class="stage"><div class="pic">${q.pic}</div>
+      <p class="cue" id="cue">${q.type==='say'?esc(q.cue):'<span class="jp">きいてね！</span>'}</p><div id="slot"></div></div>`;
+    (async()=>{
+      if(q.type==='say'){for(const c of(q.cues||[q.cue])){await speak(c,'en');if(!G||tk!==G.token)return}}else{await speak(q.say)}
+      if(!G||tk!==G.token)return;
+      if(micOn()){micStage(q,tk);return}
+      document.getElementById('slot').innerHTML=`<div class="stack" style="align-items:center">${q.pattern?`<p class="pattern jp">${esc(q.pattern)}</p>`:''}<div class="ring"></div><span class="ringlabel">${q.type==='say'?'Say it now':'<span class="jp">いって！</span>'}</span>${q.type==='say'?'<div class="row"><button class="btn jp" data-act="sayhint">ヒント</button><button class="btn jp" data-act="skipwait">こたえを きく</button></div><p class="reveal" id="hintbox" hidden></p>':''}</div>`;
+      await new Promise(r=>{G.skipWait=r;setTimeout(r,q.pause||(q.type==='say'?4000:3000))});if(!G||tk!==G.token)return;
+      document.getElementById('slot').innerHTML=`<p class="reveal">${esc(q.show)}<small>${esc(q.en)}</small></p>`;
+      await sayQ(q);if(!G||tk!==G.token)return;
+      document.getElementById('slot').insertAdjacentHTML('beforeend',`<div class="row" style="margin-top:18px"><button class="btn" data-act="again">Hear again</button><button class="btn main" data-act="said">I said it ★</button>${q.type==='say'?'<button class="btn" data-act="notyet">Not yet</button>':''}</div>`);
+    })();
+  }
+}
+const showClues=()=>{document.querySelectorAll('.clue b,.clue small').forEach(s=>s.hidden=false);document.querySelectorAll('.clue em').forEach(s=>s.hidden=true)};
+function answer(k,btn){
+  if(G.lock)return;const q=G.qs[G.i];const o=q.opts[k];
+  if(o.ok){
+    if(btn.classList.contains('right'))return;btn.classList.add('right');G.got=(G.got||0)+1;
+    if(q.need&&G.got<q.need){tone('ok');return} // level 4 of きいてタップ: two pictures to find
+    G.lock=true;tone('ok');if(q.type==='clue')showClues();
+    let pts=0;
+    if(who==='big'){pts=[100,50,20][Math.min(G.tries,2)];if(G.tries===0){G.combo++;pts+=Math.min(50,(G.combo-1)*10)}else G.combo=0;if(G.hint)pts=Math.max(10,pts-30);G.score+=pts}
+    G.marks[G.i]=G.tries===0?'ok':'meh';
+    const line=document.getElementById('line');if(line)line.outerHTML=`<p class="reveal">${esc(q.show)}<small>${esc(q.en)}${who==='big'?` · +${pts}`:''}</small></p>`;
+    const tk=G.token;(async()=>{if(q.type==='clue')await speak(W[q.word].tts||W[q.word].jp);else if(q.type==='teach')await speak(q.say);else await wait(who==='big'?1100:1400);if(G&&tk===G.token)next()})();
+  }else{
+    btn.classList.add('wrong');btn.disabled=true;G.tries++;G.combo=0;tone('bad');
+    const m=S.players[who].miss;m[q.word]=(m[q.word]||0)+1;save();
+    if(q.type==='pick'&&!q.once)sayQ(q);
+  }
+}
+function basketDraw(){const b=document.getElementById('basket');if(!b||!G)return;b.classList.remove('wrong');const items=Object.entries(G.basket).filter(([,n])=>n>0);
+  b.innerHTML=items.length?items.map(([id,n])=>W[id].pic.repeat(n)).join('<span class="plus">＋</span>'):'<span class="empty">🧺</span>'}
+function basketPut(id){if(!G||G.lock)return;const tot=Object.values(G.basket).reduce((a,b)=>a+b,0);if(tot>=6)return;G.basket[id]=(G.basket[id]||0)+1;basketDraw()}
+function basketCheck(){
+  if(!G||G.lock)return;const q=G.qs[G.i],want=q.want,got=G.basket;
+  const ok=Object.keys(want).every(k=>got[k]===want[k])&&Object.keys(got).every(k=>!got[k]||want[k]);
+  const reveal=extra=>{const line=document.getElementById('line');if(line)line.outerHTML=`<p class="reveal">${esc(q.show)}<small>${esc(q.en)}${extra}</small></p>`};
+  if(ok){
+    G.lock=true;tone('ok');document.getElementById('basket').classList.add('right');
+    let pts=[100,50,20][Math.min(G.tries,2)];if(G.tries===0){G.combo++;pts+=Math.min(50,(G.combo-1)*10)}else G.combo=0;G.score+=pts;G.marks[G.i]=G.tries===0?'ok':'meh';
+    reveal(' · +'+pts);const tk=G.token;setTimeout(()=>{if(G&&tk===G.token)next()},1200);
+  }else{
+    G.tries++;G.combo=0;tone('bad');const m=S.players[who].miss;m[q.word]=(m[q.word]||0)+1;save();
+    document.getElementById('basket').classList.add('wrong');setTimeout(()=>{if(G){G.basket={};basketDraw()}},500);
+    if(G.tries>=3){G.lock=true;reveal('');sayQ(q);const tk=G.token;setTimeout(()=>{if(G&&tk===G.token)next()},2800)}else sayQ(q);
+  }
+}
+function next(){G.i++;if(G.i>=G.qs.length)finish();else showQ()}
+function finish(){
+  const P=S.players[who];const g=GAMES[G.game],fam=g.fam,key=bk(G.game),title=famTitle(fam).jp+' レベル'+g.level;tone('win');screen='result';
+  if(fam==='team'){
+    const prev=S.team.best[key]||0,isBest=G.score>prev,st=starsFor(G.score,g.n);S.team.stars+=st;if(isBest)S.team.best[key]=G.score;save();push();
+    app.innerHTML=`<div class="stage">${isBest?'<span class="newbest">New team best</span>':'<span class="eyebrow">Team score</span>'}<div class="pic" style="font-size:64px">🦊🐣</div><h2 class="jp">${title}</h2>
+      <div class="bigscore">${G.score}</div><div class="bigstars">${'★'.repeat(st)}${'☆'.repeat(3-st)}</div>
+      <p class="sub">${isBest?'Previous best '+(prev||'—'):'Team best '+prev} · Perfect game ${maxScore(g.n)}</p>
+      <div class="row"><button class="btn main jp" data-act="play" data-game="${G.game}">もういっかい</button><button class="btn" data-act="team">Levels</button><button class="btn" data-act="home">Players</button></div></div>`;
+    G=null;return}
+  if(who==='big'){
+    const lvs=lvKeys(fam),ix=lvs.indexOf(G.game),nx=lvs[ix+1],lockedBefore=!!nx&&!lvOpen(P,fam,nx);
+    const prev=P.best[key]||0;const isBest=G.score>prev;const st=starsFor(G.score,g.n);P.stars+=st;if(isBest)P.best[key]=G.score;save();push();
+    const nextLv=nx&&st>=2&&lvOpen(P,fam,nx)?nx:'';
+    app.innerHTML=`<div class="stage">${isBest?'<span class="newbest">New best</span>':`<span class="eyebrow">Score</span>`}<h2 class="jp">${title}</h2>
+      <div class="bigscore">${G.score}</div><div class="bigstars">${'★'.repeat(st)}${'☆'.repeat(3-st)}</div>${lockedBefore&&lvOpen(P,fam,nx)?'<span class="newbest">Level '+(ix+2)+' unlocked</span>':''}
+      <p class="sub">${isBest?`Previous best ${prev||'—'}`:`Your best ${prev}`} · Perfect game ${maxScore(g.n)}</p>
+      <div class="row"><button class="btn main" data-act="play" data-game="${G.game}">Play again</button>${nextLv?'<button class="btn" data-act="play" data-game="'+nextLv+'">Next level</button>':''}<button class="btn" data-act="hub" data-who="big">All games</button></div></div>`;
+  }else{
+    const st=G.marks.filter(Boolean).length;P.stars+=st;P.best[key]=(P.best[key]||0)+1;save();push();
+    app.innerHTML=`<div class="stage"><div class="pic">🎉</div><h2 class="jp">できた！</h2><div class="bigstars">${'★'.repeat(Math.min(st,6))}</div>
+      <div class="row"><button class="btn leaf jp" data-act="play" data-game="${G.game}">もういっかい</button><button class="btn" data-act="hub" data-who="little">All games</button></div></div>`;
+  }
+  G=null;
+}
+
+/* ---------- grown-ups ---------- */
+function lines(){
+  const w=WORDS[0],cw=WORDS.find(x=>x.cnt),out=[];WORDS.forEach(x=>out.push([x.jp,cap(x.en)]));
+  FIXED.forEach(f=>out.push([f.jp,f.en]));
+  PK.frames.concat(PK.frames3).forEach(f=>{const x=WORDS.find(v=>(!f.kind||f.kind===v.kind)&&!(f.skip||[]).includes(v.id))||w;out.push([ft(f.jp,x,x.jp),ft(f.en,x,'')+' — record once per word it fits']);});
+  COUNTERS[cw.cnt].forEach(c=>out.push([PK.countSay(cw,c).show,PK.countSay(cw,c).en+' — once per countable word']));
+  Object.values(PK.cl).forEach(c=>out.push([c[0],c[2]]));out.push([ORD2[0].show,ORD2[0].en+' — 30 two-group sentences (level 3)']);
+  return out;
+}
+function grown(){
+  screen='grown';
+  const trouble=k=>Object.entries(S.players[k].miss).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([id,n])=>`${ALLW[id]?ALLW[id].jp:id} (${n})`).join('、')||'None yet';
+  app.innerHTML=`<div class="bar"><button class="ghost" data-act="home">← Players</button></div>
+  <div class="doc"><h2>For grown-ups</h2>
+   <p>The app teaches each week's phrases by ear. They stick when the kids hear the same phrases from you and Grandma. About 10 minutes of play, then use the phrases in real life.</p>
+   ${weekSwitch()}
+   <h3>Use these at home — week ${PK.week}, <span class="jp">${PK.jp}</span></h3>
+   <div class="scroll"><table><thead><tr><th>Say</th><th>Meaning</th><th>When</th></tr></thead><tbody>${PK.home.map(r=>`<tr><td class="j">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>
+   <p class="note">If they answer in English, don't switch. Guess in Japanese or say 「にほんごで？」 and wait. Praise the try, not the accent.</p>
+   <h3>What the levels are</h3>
+   <ul>${Object.keys(ALLF).map(f=>`<li><b class="jp">${famTitle(f).jp}</b> — ${famLv(f).map((t,i)=>(i+1)+'. '+t).join(' · ')}</li>`).join('')}</ul>
+   <p class="sub">Levels measure how hard the task is, not a school grade. Every week so far is first-months beginner Japanese (below JLPT N5): words a Japanese toddler knows, in sentence patterns a beginner course teaches early.</p>
+   <h3>Progress</h3>
+   <ul><li>${esc(S.players.big.name)}: ${S.players.big.stars} stars · words to repeat at home: <span class="jp">${esc(trouble('big'))}</span></li>
+       <li>${esc(S.players.little.name)}: ${S.players.little.stars} stars · words to repeat at home: <span class="jp">${esc(trouble('little'))}</span></li>
+       <li>Family missions done: ${Object.keys(S.missions).length}</li></ul>
+   <p class="sub">${syncOn?'Scores sync across every device signed in to this page.':'Scores are saved on this device.'}</p>
+   <h3>Her pick for next week</h3>
+   <p>${S.wish.theme&&THEMES[S.wish.theme]?'<b class="jp">'+THEMES[S.wish.theme].jp+'</b> ('+THEMES[S.wish.theme].en+') — <span class="jp">'+esc((S.wish.words||[]).join('、'))+'</span>':'She has not chosen yet. The 🗳️ card is on her games screen.'}</p>
+   <h3>Secret messages from Grandma or Dad</h3>
+   <p>Record a short message in Japanese, such as 「よく できたね！ おばあちゃんは うれしいよ」. It stays sealed and opens as a surprise once the kids earn a few more stars. Record several at once and they open one after another.</p>
+   <div class="row" style="justify-content:flex-start"><label class="field" for="msg-from">From<input id="msg-from" value="おばあちゃん" maxlength="16"></label><label class="field" for="msg-text" style="flex:1;min-width:220px">Written message (optional)<input id="msg-text" maxlength="80" style="max-width:none"></label></div>
+   <div class="row" style="justify-content:flex-start"><button class="btn" data-act="recstart">● Record</button><button class="btn" data-act="recstop">■ Stop</button><button class="btn" data-act="recplay">Play it back</button><button class="btn main" data-act="msgsave">Save message</button></div>
+   <p class="sub" id="recmsg">Up to about 10 seconds. If this device will not record here, a written message still works.</p>
+   ${MSGS.length?'<ul>'+MSGS.map(m=>'<li>'+esc(m.from)+(m.audio?' · voice':'')+(m.text?' · 「<span class="jp">'+esc(m.text)+'</span>」':'')+' — '+(S.opened[m.id]?'opened':msgReady(m)?'ready to open':'opens in '+(m.need-totalStars())+' more stars')+' <button class="textlink" data-act="msgdel" data-id="'+m.id+'">Delete</button></li>').join('')+'</ul>':''}
+   <h3>Microphone check in いってみよう</h3>
+   <p>${!SR?'This browser has no speech recognition, so いってみよう uses the "I said it" button.':micBroken?'The microphone does not work on this device in this browser (code: '+esc(micBroken)+'), so いってみよう uses the "I said it" and "Not yet" buttons: she says it, you judge. Tap Test to check again after an update.':'She taps the microphone and says it. The app checks whether a listener would have understood her. It is lenient, and a grown-up can overrule a miss.'}</p>
+   <p class="sub">Speech recognition is off on this site, so いってみよう uses the "I said it" buttons. Recorded messages stay on this device.</p>
+   <div class="row" style="justify-content:flex-start"><button class="btn ${micPref?'main':''}" data-act="micpref" data-v="on">On</button><button class="btn ${micPref?'':'main'}" data-act="micpref" data-v="off">Off</button><button class="btn" data-act="mictest">Test the microphone</button></div>
+   <p class="sub" id="mictest">The 4-year-old's games never use the microphone.</p>
+   <h3>Japanese voice speed</h3>
+   <div class="row" style="justify-content:flex-start">${Object.keys(SPEEDS).map(k=>`<button class="btn ${speed===k?'main':''}" data-act="speed" data-v="${k}">${cap(k)}</button>`).join('')}<button class="btn" data-act="testvoice">Play a sample</button></div>
+   <p class="sub">This setting is kept per device.</p>
+   <h3>Names</h3>
+   <div class="row" style="justify-content:flex-start"><label class="field" for="nm-big">Older child<input id="nm-big" value="${esc(S.players.big.name)}" maxlength="16"></label>
+   <label class="field" for="nm-little">Younger child<input id="nm-little" value="${esc(S.players.little.name)}" maxlength="16"></label></div>
+   <div class="row" style="justify-content:flex-start"><button class="btn main" data-act="names">Save names</button><button class="btn" data-act="reset">Reset all scores</button></div>
+   <h3>Recording list for Dad — week ${PK.week}</h3>
+   <p>The app currently uses an AI voice. To replace it with your own, record each line once in the Voice Memos app, slowly and clearly, one line per clip.</p>
+   <div class="scroll"><table><thead><tr><th>Line</th><th>Meaning</th></tr></thead><tbody>${lines().map(l=>`<tr><td class="j">${esc(l[0])}</td><td>${esc(l[1])}</td></tr>`).join('')}</tbody></table></div>
+  </div>`;
+}
+
+/* ---------- events ---------- */
+const sample=()=>speak(PK.countSay(WORDS.find(w=>w.cnt),COUNTERS[WORDS.find(w=>w.cnt).cnt][1]).tts);
+app.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
+  if(a==='home')home();
+  else if(a==='hub'){who=b.dataset.who;hub()}
+  else if(a==='grown')grown();
+  else if(a==='week'){setWeek(b.dataset.v);if(screen==='grown')grown();else home()}
+  else if(a==='play')play(b.dataset.game);
+  else if(a==='quit'){hush();push();if(G&&GAMES[G.game].fam==='team')teamHub();else hub()}
+  else if(a==='replay'){const q=G&&G.qs[G.i];if(q){if(q.once){if(G.replayed)return;G.replayed=true;b.disabled=true}sayQ(q)}}
+  else if(a==='bput')basketPut(b.dataset.id);
+  else if(a==='bclear'){if(G&&!G.lock){G.basket={};basketDraw()}}
+  else if(a==='bdone')basketCheck();
+  else if(a==='ans')answer(+b.dataset.k,b);
+  else if(a==='clue'){const q=G.qs[G.i];if(!q.silent)speak(q.clues[+b.dataset.k][1])}
+  else if(a==='hint'){G.hint=true;showClues();b.hidden=true}
+  else if(a==='again'){sayQ(G.qs[G.i])}
+  else if(a==='said'){tone('ok');if(who==='big'){if(G.hint){G.combo=0;G.score+=60}else{G.combo++;G.score+=100+Math.min(50,(G.combo-1)*10)}}G.marks[G.i]=G.hint?'meh':'ok';next()}
+  else if(a==='mic'){listen()}
+  else if(a==='giveup'){giveUp()}
+  else if(a==='micnext'){G.combo=0;G.score+=20;G.marks[G.i]='meh';next()}
+  else if(a==='micoverride'){G.score+=70;G.marks[G.i]='meh';tone('ok');next()}
+  else if(a==='micpref'){micPref=b.dataset.v==='on';try{localStorage.setItem('np-mic',micPref?'on':'off')}catch(x){}grown()}
+  else if(a==='mictest'){micTest()}
+  else if(a==='sayhint'){G.hint=true;const x=document.getElementById('hintbox');if(x){x.textContent=G.qs[G.i].show;x.hidden=false}b.hidden=true}
+  else if(a==='skipwait'){if(G&&G.skipWait)G.skipWait()}
+  else if(a==='notyet'){G.combo=0;G.score+=20;G.marks[G.i]='meh';next()}
+  else if(a==='team')teamHub();
+  else if(a==='teachhelp'){G.hint=true;speak(G.qs[G.i].say)}
+  else if(a==='mail')mail();
+  else if(a==='openmsg')openMsg(b.dataset.id);
+  else if(a==='msgplay'){const m=MSGS.find(x=>x.id===b.dataset.id);if(m&&m.audio)playData(m.audio)}
+  else if(a==='recstart')recStart();
+  else if(a==='recstop'){if(mrec&&mrec.state==='recording')mrec.stop()}
+  else if(a==='recplay'){if(draft)playData(draft)}
+  else if(a==='msgsave')saveMsg();
+  else if(a==='msgdel'){if(b.dataset.sure)delMsg(b.dataset.id);else{b.dataset.sure='1';b.textContent='Tap again to delete'}}
+  else if(a==='wish')wish();
+  else if(a==='wtheme'){if(wishDraft.theme!==b.dataset.v)wishDraft={theme:b.dataset.v,words:[]};wishWords()}
+  else if(a==='wword'){const v=b.dataset.v,i=wishDraft.words.indexOf(v);if(i>=0)wishDraft.words.splice(i,1);else if(wishDraft.words.length<8)wishDraft.words.push(v);wishWords()}
+  else if(a==='wsave'){S.wish={theme:wishDraft.theme,words:wishDraft.words.slice(),at:Date.now()};save();push();tone('win');hub()}
+  else if(a==='mission'){S.missions[today()]=true;save();push();tone('win');hub()}
+  else if(a==='speed'){speed=b.dataset.v;try{localStorage.setItem('np-speed',speed)}catch(x){}grown();sample()}
+  else if(a==='testvoice'){sample()}
+  else if(a==='names'){const x=document.getElementById('nm-big').value.trim(),y=document.getElementById('nm-little').value.trim();const t=Date.now();
+    if(x&&x!==S.players.big.name){S.players.big.name=x;S.players.big.nameAt=t}if(y&&y!==S.players.little.name){S.players.little.name=y;S.players.little.nameAt=t}save();push();b.textContent='Saved'}
+  else if(a==='reset'){if(b.dataset.sure){const o=S.players;S=fresh();S.resetAt=Date.now();for(const k of['big','little']){S.players[k].name=o[k].name;S.players[k].nameAt=o[k].nameAt}save();push();grown()}else{b.dataset.sure='1';b.textContent='Tap again to erase all scores'}}
+});
+home();
+</script>
