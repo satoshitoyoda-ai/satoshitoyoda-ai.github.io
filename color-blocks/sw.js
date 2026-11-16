@@ -15,6 +15,7 @@ self.addEventListener('activate', function(e){
 });
 
 self.addEventListener('fetch', function(e){
+  if (new URL(e.request.url).origin !== location.origin) return;
   if(e.request.mode === 'navigate'){
     // page loads: network-first so updates arrive, cached copy when offline
     e.respondWith(

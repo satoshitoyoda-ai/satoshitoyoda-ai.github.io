@@ -2,8 +2,9 @@
 
 A little forest of homemade games and learning apps for kids. The site is static (plain HTML, no build step) and is served by GitHub Pages.
 
-- **No ads, no accounts, no analytics.** Nothing is sent anywhere. Names and progress stay in the browser's local storage on the device that plays.
-- **No third-party requests.** No web fonts, CDNs or trackers. Games use the device's own fonts and voices.
+- **No ads, no accounts, no personal data.** Names and progress stay in the browser's local storage on the device that plays.
+- **Visit counts only.** Each page has one line that tells GoatCounter it was opened (path only, no cookies, nothing that identifies the player; live site only). Nothing else is sent anywhere.
+- **No other third-party requests.** No web fonts, CDNs, ads or trackers. Games use the device's own fonts and voices.
 - **No speech recognition.** It is switched off in the public copies, because some browsers send that audio to a server.
 - **Not indexed.** Every page carries `robots: noindex`, so the site is shared by link.
 - **Original characters only.**

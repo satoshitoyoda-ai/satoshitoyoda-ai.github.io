@@ -1,7 +1,7 @@
 {
   "name": "Pikomori ピコモリ",
   "short_name": "Pikomori",
-  "description": "Little games and learning apps for kids. No ads, no accounts, no tracking.",
+  "description": "Little games and learning apps for kids. No ads, no accounts, no personal data.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
