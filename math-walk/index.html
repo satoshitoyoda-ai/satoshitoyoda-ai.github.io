@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Toshi's Math Walk</title>
+<style>
+/* Layout: one centered column in a sunny park. Home (Toshi + today's clock) → Walk (trail, question card, keypad) → Grown-ups dashboard. Deliberately single (light) theme. */
+:root{
+  color-scheme: light;
+  --sky:#DCEFF9; --sky-deep:#BFE0F2;
+  --grass:#4A965A; --grass-soft:#D7ECCD;
+  --paper:#FFFDF6; --ink:#1F2D3D; --muted:#5A6A7B; --line:#D6E1E8;
+  --sun:#FFC83A; --sun-soft:#FFF1C4;
+  --toshi:#B8763C; --toshi-dark:#7C4B23; --cream:#F4DCB8;
+  --coral:#E8604F; --coral-soft:#FCE2DD;
+  --ok:#2A9455; --ok-soft:#DCF2E4;
+  --blue:#4A82D4; --pink:#EE88AE;
+  --f-display:"Lexend","Hiragino Sans","Hiragino Kaku Gothic ProN",system-ui,sans-serif;
+  --f-body:"Andika","Hiragino Maru Gothic ProN","Hiragino Sans",system-ui,sans-serif;
+  --r:20px;
+}
+html,body{height:100%}
+body{background:linear-gradient(180deg,var(--sky) 0%,var(--sky) 55%,var(--grass-soft) 100%);background-color:var(--sky);color:var(--ink);font-family:var(--f-body);font-size:18px;line-height:1.4;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:12px 40px;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;margin:0;text-wrap:balance;line-height:1.1}
+.card{background:var(--paper);border-radius:var(--r);box-shadow:0 2px 0 var(--line),0 8px 24px rgba(31,45,61,.06);padding:18px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--paper);font-weight:700;font-size:16px;box-shadow:0 1px 0 var(--line)}
+.linkbtn{padding:8px 12px;border-radius:12px;font-weight:700;font-size:16px;color:var(--muted)}
+.linkbtn:hover{background:rgba(255,255,255,.6)}
+.tab-nums{font-variant-numeric:tabular-nums}
+
+/* Home */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center}
+.hero h1{font-size:clamp(30px,6vw,46px);color:var(--toshi-dark)}
+.hero p{margin:6px 0 0;color:var(--muted)}
+.hero .toshi{width:clamp(120px,26vw,170px);height:auto}
+.today{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center}
+.ring{width:132px;height:132px}
+.ring .bg{fill:none;stroke:var(--sun-soft);stroke-width:12}
+.ring .fg{fill:none;stroke:var(--sun);stroke-width:12;stroke-linecap:round;transition:stroke-dasharray .6s}
+.ring.done .fg{stroke:var(--ok)}
+.ring text{font-family:var(--f-display);fill:var(--ink)}
+.ring .big{font-size:26px;font-weight:700}
+.ring .small{font-size:12px;fill:var(--muted)}
+.today h2{font-size:24px}
+.today .sub{color:var(--muted);margin-top:4px}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.go{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:20px;border-radius:var(--r);background:var(--grass);color:#fff;font-family:var(--f-display);font-weight:700;font-size:28px;box-shadow:0 6px 0 #357444;transition:transform .08s}
+.go:active{transform:translateY(4px);box-shadow:0 2px 0 #357444}
+.sect-label{font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:4px 2px 0}
+.topics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.topic{background:var(--paper);border-radius:16px;padding:14px 12px;text-align:left;box-shadow:0 3px 0 var(--line);display:flex;flex-direction:column;gap:6px;min-width:0}
+.topic:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.topic .ico{font-size:26px;line-height:1}
+.topic b{font-family:var(--f-display);font-size:18px;font-weight:700}
+.lvl{display:flex;gap:3px}
+.lvl i{width:12px;height:12px;border-radius:50%;background:var(--line)}
+.lvl i.on{background:var(--sun)}
+.closet{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;background:var(--paper);font-weight:700;font-size:16px;box-shadow:0 2px 0 var(--line)}
+.chip.on{background:var(--sun-soft);box-shadow:0 0 0 2px var(--sun)}
+.chip.locked{opacity:.45;cursor:default}
+.footer{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;color:var(--muted);font-size:14px}
+
+/* Walk */
+.bar{display:flex;align-items:center;gap:10px}
+.homebtn{width:48px;height:48px;border-radius:14px;background:var(--paper);font-size:22px;box-shadow:0 2px 0 var(--line)}
+.clock-mini{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.clock-mini .lbl{display:flex;justify-content:space-between;font-weight:700;font-size:17px}
+.clock-mini .lbl span:last-child{color:var(--muted);font-weight:400}
+.meter{height:12px;border-radius:999px;background:var(--paper);overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+.meter i{display:block;height:100%;background:var(--sun);border-radius:999px;transition:width .5s}
+.meter.done i{background:var(--ok)}
+.paused{color:var(--coral)}
+.trail{background:var(--grass-soft);border-radius:var(--r);padding:12px 14px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
+.stop{display:flex;flex-direction:column;align-items:center;font-size:14px;font-weight:700;color:var(--grass);max-width:84px;text-align:center}
+.stop .em{font-size:30px;line-height:1.1}
+.path{position:relative;height:56px}
+.paws{position:absolute;left:0;right:0;top:50%;display:flex;justify-content:space-between;transform:translateY(-50%)}
+.paws i{width:12px;height:12px;border-radius:50%;background:rgba(74,150,90,.25)}
+.paws i.on{background:var(--grass)}
+.walker{position:absolute;top:-6px;width:56px;margin-left:-28px;transition:left .6s cubic-bezier(.3,1.4,.5,1)}
+.walker .toshi{width:56px;height:auto}
+.steps-left{font-size:16px;color:var(--muted);text-align:center;margin-top:-4px}
+.qcard{display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.qtopic{font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.qtext{font-family:var(--f-display);font-size:clamp(30px,7vw,48px);font-weight:700;font-variant-numeric:tabular-nums}
+.qtext.words{font-family:var(--f-body);font-size:clamp(20px,4.2vw,26px);font-weight:700;line-height:1.45;max-width:34ch;text-align:left}
+.qtext .hl{background:var(--sun-soft);border-radius:8px;padding:0 4px;box-shadow:0 0 0 2px var(--sun)}
+.visual{max-width:100%;overflow-x:auto}
+.ansbox{min-width:150px;padding:10px 20px;border-radius:16px;background:var(--sky);font-family:var(--f-display);font-size:48px;font-weight:700;font-variant-numeric:tabular-nums;min-height:72px;display:flex;align-items:center;justify-content:center;gap:4px}
+.ansbox .ph{color:var(--sky-deep)}
+.ansbox.shake{animation:shake .4s}
+.ansbox.right{background:var(--ok-soft);color:var(--ok)}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.pad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%;max-width:360px}
+.pad button{height:64px;border-radius:16px;background:var(--paper);font-family:var(--f-display);font-size:30px;font-weight:700;box-shadow:0 4px 0 var(--line),inset 0 0 0 2px var(--line)}
+.pad button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line),inset 0 0 0 2px var(--line)}
+.pad .check{background:var(--grass);color:#fff;box-shadow:0 4px 0 #357444}
+.pad .del{font-size:24px;color:var(--muted)}
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%;max-width:420px}
+.choices.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.choices button{min-height:72px;border-radius:16px;background:var(--paper);font-family:var(--f-display);font-size:32px;font-weight:700;box-shadow:0 4px 0 var(--line),inset 0 0 0 2px var(--line);font-variant-numeric:tabular-nums}
+.choices button:disabled{opacity:.35}
+.choices button.right{background:var(--ok-soft);color:var(--ok);box-shadow:0 4px 0 var(--ok),inset 0 0 0 2px var(--ok)}
+.fb{width:100%;border-radius:16px;padding:12px 16px;font-weight:700;font-size:19px}
+.fb.ok{background:var(--ok-soft);color:var(--ok);font-family:var(--f-display);font-size:24px}
+.fb.try{background:var(--sun-soft);color:var(--toshi-dark)}
+.fb.no{background:var(--coral-soft);color:var(--ink);text-align:left;display:flex;flex-direction:column;gap:8px}
+.fb.no .ans{font-family:var(--f-display);font-size:24px;color:var(--coral)}
+.fb .lvlup{display:block;margin-top:4px;font-size:16px;color:var(--toshi-dark)}
+.explain{font-weight:400;font-size:17px;display:flex;flex-direction:column;gap:6px}
+.vert{font-family:var(--f-display);font-size:30px;font-weight:700;border-collapse:collapse;margin:2px 0;font-variant-numeric:tabular-nums}
+.vert td{width:28px;text-align:center;padding:0 2px}
+.vert .carry td{font-size:16px;color:var(--coral);height:18px}
+.vert .sum td{border-top:3px solid var(--ink)}
+.nextbtn{padding:14px 34px;border-radius:16px;background:var(--grass);color:#fff;font-family:var(--f-display);font-weight:700;font-size:24px;box-shadow:0 4px 0 #357444}
+.toshi .tail{transform-origin:88px 88px}
+.toshi.wag .tail{animation:wag .18s 5 alternate}
+.toshi.hop{animation:hop .5s}
+@keyframes wag{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
+@keyframes hop{30%{transform:translateY(-10px)}}
+
+/* SVG fills */
+.t-fur{fill:var(--toshi)} .t-ear{fill:var(--toshi-dark)} .t-belly{fill:var(--cream)}
+.t-nose,.t-eye{fill:var(--ink)} .t-shine{fill:var(--paper)}
+.t-line{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round}
+.a-bandana{fill:var(--coral)} .a-glass{fill:var(--ink);opacity:.88} .a-bow{fill:var(--pink)}
+.a-hat{fill:var(--blue)} .a-pom{fill:var(--sun)} .a-crown{fill:var(--sun);stroke:var(--toshi-dark);stroke-width:1.5;stroke-linejoin:round} .a-scarf{fill:var(--grass)}
+.clk-face{fill:var(--paper);stroke:var(--ink);stroke-width:6}
+.clk-tick{stroke:var(--muted);stroke-width:2} .clk-tick.big{stroke:var(--ink);stroke-width:4}
+.clk-num{font-family:var(--f-display);font-weight:700;font-size:22px;fill:var(--ink)}
+.clk-h{stroke:var(--coral);stroke-width:9;stroke-linecap:round} .clk-m{stroke:var(--blue);stroke-width:6;stroke-linecap:round}
+.clk-dot{fill:var(--ink)}
+.blk-flat{fill:var(--blue)} .blk-rod{fill:var(--grass)} .blk-one{fill:var(--sun)}
+.blk-grid{stroke:var(--paper);stroke-width:.8;fill:none}
+.coin-p{fill:#C9814F;stroke:#8E5530} .coin-s{fill:#D3D8DF;stroke:#8C96A3}
+.coin-v{font-family:var(--f-display);font-weight:700;fill:var(--ink)}
+.coin-n{font-size:10px;font-family:var(--f-body);fill:var(--muted)}
+
+/* v2 additions */
+.speak{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:var(--sky);font-weight:700;font-size:16px;color:var(--ink)}
+.speak:active{transform:translateY(1px)}
+.qhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+.week{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.week .d{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:var(--paper);box-shadow:inset 0 0 0 2px var(--line);color:var(--muted)}
+.week .d.hit{background:var(--grass);color:#fff;box-shadow:none}
+.week .d.part{background:var(--sun-soft);box-shadow:inset 0 0 0 2px var(--sun);color:var(--toshi-dark)}
+.week .d.today{outline:2px solid var(--ink);outline-offset:2px}
+.week .lbl{font-weight:700;font-size:15px;margin-left:4px}
+.newtag{align-self:flex-start;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--sun-soft);color:var(--toshi-dark)}
+.tf-cell{fill:var(--paper);stroke:var(--ink);stroke-width:2}
+.tf-a{fill:var(--coral)} .tf-b{fill:var(--blue)}
+.nl-line{stroke:var(--ink);stroke-width:3;stroke-linecap:round}
+.nl-tick{stroke:var(--ink);stroke-width:2}
+.nl-num{font-family:var(--f-display);font-weight:600;font-size:15px;fill:var(--ink)}
+.nl-num.key{font-size:18px;font-weight:700}
+.nl-arc{fill:none;stroke:var(--coral);stroke-width:3;stroke-dasharray:6 5}
+.nl-lab{font-family:var(--f-display);font-weight:700;font-size:20px;fill:var(--coral)}
+.nl-q{font-family:var(--f-display);font-weight:700;font-size:22px;fill:var(--blue)}
+.fb.slow{background:var(--sky);color:var(--ink);text-align:left}
+.talk{background:var(--sun-soft);border-radius:16px;padding:14px 16px;font-size:18px;text-align:left;-webkit-user-select:text;user-select:text}
+.paper ol{margin:0;padding-left:28px;display:flex;flex-direction:column;gap:8px;font-size:17px;-webkit-user-select:text;user-select:text}
+.paper .a{color:var(--ok);font-weight:700;margin-left:8px}
+
+/* CBA #3 review */
+.go.cba{background:var(--blue);box-shadow:0 6px 0 #2F5FA8;font-size:24px;padding:16px;margin-top:-4px;flex-wrap:wrap}
+.go.cba:active{box-shadow:0 2px 0 #2F5FA8}
+.nextbtn:disabled{opacity:.4;cursor:default}
+.choices.long{grid-template-columns:minmax(0,1fr);max-width:600px}
+.choices.long button{font-family:var(--f-body);font-size:20px;font-weight:700;line-height:1.35;text-align:left;padding:12px 16px;display:flex;gap:12px;align-items:flex-start}
+.choices.long .ltr{font-family:var(--f-display);color:var(--muted);flex:none}
+.choices.long button.sel{background:var(--sun-soft);box-shadow:0 4px 0 var(--sun),inset 0 0 0 2px var(--sun)}
+.plan{width:100%;display:flex;flex-direction:column;gap:12px;align-items:center}
+.plan-title{font-weight:700;font-size:18px;color:var(--toshi-dark)}
+.eq-done{font-weight:700;font-size:18px;color:var(--ok);font-variant-numeric:tabular-nums}
+.bm{width:100%;max-width:420px;border:3px solid var(--ink);border-radius:6px;background:var(--paper);font-family:var(--f-display);font-size:30px;font-weight:700;font-variant-numeric:tabular-nums}
+.bm-top,.bm-part{min-height:60px;display:flex;align-items:center;justify-content:center}
+.bm-parts{display:flex;border-top:3px solid var(--ink)}
+.bm-part{flex:1 1 0;min-width:0}
+.bm-part+.bm-part{border-left:3px solid var(--ink)}
+.bm .active{background:var(--sun-soft);box-shadow:inset 0 0 0 3px var(--sun)}
+.bm .q{color:var(--blue)}
+.tokens{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.tokens button{min-width:76px;height:64px;padding:0 12px;border-radius:16px;background:var(--paper);font-family:var(--f-display);font-size:30px;font-weight:700;box-shadow:0 4px 0 var(--line),inset 0 0 0 2px var(--line);font-variant-numeric:tabular-nums}
+.tokens button:disabled{opacity:.3}
+.eqn{font-family:var(--f-display);font-size:clamp(26px,6vw,36px);font-weight:700;font-variant-numeric:tabular-nums}
+.ops{display:flex;gap:16px}
+.ops button{width:96px;height:80px;border-radius:16px;background:var(--paper);font-family:var(--f-display);font-size:44px;font-weight:700;box-shadow:0 4px 0 var(--line),inset 0 0 0 2px var(--line)}
+.ops button:disabled{opacity:.3}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(31,45,61,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal .card{max-width:420px;width:100%;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;animation:pop .35s}
+.modal h2{font-size:28px;color:var(--toshi-dark)}
+.modal .big-em{font-size:56px;line-height:1}
+.modal .toshi{width:140px;height:auto}
+@keyframes pop{from{transform:scale(.85);opacity:.4}}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:11}
+
+/* Grown-ups */
+.gate{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.gate input{font:inherit;font-size:30px;width:140px;text-align:center;padding:8px;border-radius:12px;border:2px solid var(--line);background:var(--paper);color:var(--ink)}
+.dash h2{font-size:22px;margin-bottom:10px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.kpi{background:var(--paper);border-radius:16px;padding:12px 14px;box-shadow:0 2px 0 var(--line)}
+.kpi .v{font-family:var(--f-display);font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi .k{font-size:13px;color:var(--muted)}
+.chart{width:100%;height:auto;display:block}
+.chart .bar{fill:var(--sun)} .chart .bar.hit{fill:var(--grass)}
+.chart .goal{stroke:var(--coral);stroke-width:2;stroke-dasharray:6 5}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart text{font-family:var(--f-body);font-size:12px;fill:var(--muted)}
+.chart .gl{fill:var(--coral);font-weight:700}
+.tbl-wrap{overflow-x:auto}
+table.t{width:100%;border-collapse:collapse;font-size:15px;font-variant-numeric:tabular-nums;-webkit-user-select:text;user-select:text}
+table.t th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:6px 8px;border-bottom:2px solid var(--line)}
+table.t td{padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.acc{display:inline-block;min-width:48px;padding:2px 8px;border-radius:999px;font-weight:700;text-align:center}
+.acc.g{background:var(--ok-soft);color:var(--ok)} .acc.y{background:var(--sun-soft);color:var(--toshi-dark)} .acc.r{background:var(--coral-soft);color:var(--coral)} .acc.n{background:var(--sky);color:var(--muted)}
+.dots{display:inline-flex;gap:3px} .dots i{width:9px;height:9px;border-radius:50%;background:var(--line)} .dots i.y{background:var(--ok)} .dots i.n{background:var(--coral)}
+.seg{display:inline-flex;background:var(--sky);border-radius:12px;padding:3px;gap:3px}
+.seg button{padding:8px 14px;border-radius:10px;font-weight:700}
+.seg button.on{background:var(--paper);box-shadow:0 1px 0 var(--line)}
+.danger{padding:10px 14px;border-radius:12px;background:var(--coral-soft);color:var(--coral);font-weight:700}
+.note{color:var(--muted);font-size:14px}
+.empty{color:var(--muted);font-size:15px;padding:8px 0}
+
+@media (max-width:560px){
+  .topics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .today{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .stats{justify-content:center}
+  .ring{width:120px;height:120px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap" id="app"></div>
+<div id="modal-root"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- constants ---------- */
+const TOPICS=['facts','addsub','place','money','time','word','cba'];
+const TOPIC_ICO={facts:'⚡',addsub:'➕',place:'🧱',money:'🪙',time:'⏰',word:'📖',cba:'🎯'};
+const STEPS_PER_STOP=8;
+const IDLE_MS=90000;
+const LS_STATE='tmw-state-v1', LS_DAYS='tmw-days-v1';
+const LANDMARKS=[
+  {em:'🏡',en:'Home',jp:'おうち'},
+  {em:'🌳',en:'Park',jp:'こうえん'},
+  {em:'🦆',en:'Duck Pond',jp:'あひるの いけ'},
+  {em:'🥐',en:'Bakery',jp:'パンや'},
+  {em:'📚',en:'Library',jp:'としょかん'},
+  {em:'🚒',en:'Fire Station',jp:'しょうぼうしょ'},
+  {em:'🏖️',en:'Beach',jp:'うみ'},
+  {em:'🐄',en:'Farm',jp:'ぼくじょう'},
+  {em:'⛰️',en:'Big Hill',jp:'おおきな おか'},
+  {em:'🚀',en:'Space Camp',jp:'うちゅう きち'}
+];
+const ITEMS=[
+  {id:'bandana',em:'🧣',en:'Red bandana',jp:'あかい バンダナ'},
+  {id:'glasses',em:'🕶️',en:'Sunglasses',jp:'サングラス'},
+  {id:'bow',em:'🎀',en:'Pink bow',jp:'ピンクの リボン'},
+  {id:'hat',em:'🥳',en:'Party hat',jp:'パーティー ぼうし'},
+  {id:'scarf',em:'🌿',en:'Green scarf',jp:'みどりの マフラー'},
+  {id:'crown',em:'👑',en:'Gold crown',jp:'きんの かんむり'}
+];
+const NAMES=[{en:'Hana',jp:'ハナ'},{en:'Kai',jp:'カイ'},{en:'Mom',jp:'ママ'},{en:'Dad',jp:'パパ'}];
+const OBJS=[
+  {en:'stickers',jp:'シール',c:'まい',q:'なんまい'},
+  {en:'crayons',jp:'クレヨン',c:'ほん',q:'なんぼん'},
+  {en:'books',jp:'ほん',c:'さつ',q:'なんさつ'},
+  {en:'shells',jp:'かいがら',c:'こ',q:'いくつ'},
+  {en:'strawberries',jp:'いちご',c:'こ',q:'いくつ'},
+  {en:'dog treats',jp:'おやつ',c:'こ',q:'いくつ'}
+];
+
+const S={
+ en:{
+  sub:'Answer to help Toshi walk. Every 8 steps is a new place!',
+  today:'Today', of:m=>`of ${m} min`, todayDone:'Goal done today!',
+  todayLeft:(n)=>`${n} more ${n===1?'minute':'minutes'} to today's goal`,
+  streak:n=>`🔥 ${n}-day streak`, bones:n=>`🦴 ${n}`, qs:(q,ok)=>`✔ ${ok} of ${q} today`,
+  go:'Go for a walk', pick:'Or practice one thing', closet:"Toshi's closet",
+  topics:{facts:'Fast facts',addsub:'Add & subtract',place:'Place value',money:'Money',time:'Time',word:'Word problems',cba:'CBA #3 Review'},
+  mixed:'Mixed walk', level:l=>`Level ${l}`,
+  stepsLeft:(n,p)=>`${n} more ${n===1?'step':'steps'} to the ${p}`,
+  paused:'Paused — tap to keep going', check:'Check', next:'Next',
+  great:['Great job!','You got it!','Super!','Woof! Correct!','Awesome!','Nice thinking!'],
+  tryAgain:'Almost! Try again.', answerIs:'The answer is',
+  levelUp:(t,l)=>`⭐ Level up! ${t} is now level ${l}.`,
+  levelDown:(t,l)=>`${t} goes back to level ${l} for a bit of practice.`,
+  reached:p=>`Toshi made it to the ${p}!`, newItem:'New for Toshi:', bonus:n=>`Bonus +${n} bones`, keepWalking:'Keep walking',
+  goalTitle:m=>`${m} minutes done!`, goalSub:'Toshi is so proud of you. Keep going or take a break.', keepGoing:'Keep going', takeBreak:'Go home',
+  grownups:'Grown-ups', lang:'日本語', sound:s=>`Sound ${s?'on':'off'}`,
+  sync:{local:'Saved on this iPad only',saved:'Saved',saving:'Saving…',error:'Online save failed. Saved on this device.'},
+  listen:'Listen', minOf:(a,b)=>`${a} of ${b} min`, minBig:'min', week:n=>`${n} ${n===1?'day':'days'} this week`,
+  slow:'Whoa, slow down! Take a good look first.', newTag:'Start here first',
+  walkDone:'Walk done!', walkSub:(q,ok)=>`You answered ${q} questions and got ${ok} right on the first try.`,
+  showGrownup:'Show this to a grown-up:', ok:'OK',
+  hint:{colAdd:'Start with the ones place. If it makes 10 or more, carry 1 to the next place.',colSub:'Start with the ones place. If the top digit is smaller, borrow 1 from the next place.',
+   makeTen:'Try making a ten first.',thinkAdd:'Think addition: what goes with the smaller number to make the bigger one?',three:'Add two numbers first, then add the third.',
+   countUp:'Count up from the first number to the last one.',place:'Look at the hundreds, then the tens, then the ones.',coins:'Count the biggest coins first, then count on.',
+   change:'Count up from the price to the money you have.',clock:'The short hand tells the hour. Count the long hand by 5s.',word:'Read it again. Are things being put together or taken away?'},
+  q:{
+   blocks:'What number do the blocks show?', value:(d,n)=>`What is the value of the <span class="hl">${d}</span> in ${n}?`,
+   compare:'Which sign goes in the circle?', more:(n,d)=>`What is ${Math.abs(d)} ${d>0?'more':'less'} than ${n}?`,
+   coins:'How much money is this?', change:(h,c)=>`You have ${h}. You buy a toy for ${c}. How much money is left?`,
+   clock:'What time is it?', elapsed:a=>`This is the time now. What time will it be in ${a===60?'1 hour':a+' minutes'}?`
+  }
+ },
+ jp:{
+  sub:'こたえると Toshi が すすむよ。8ほ で つぎの ばしょ！',
+  today:'きょう', of:m=>`/ ${m}ふん`, todayDone:'きょうの もくひょう クリア！',
+  todayLeft:n=>`あと ${n}ふん で きょうの もくひょう`,
+  streak:n=>`🔥 ${n}にち つづいてる`, bones:n=>`🦴 ${n}`, qs:(q,ok)=>`✔ ${q}もん ちゅう ${ok}もん`,
+  go:'さんぽに いく', pick:'ひとつだけ れんしゅう', closet:'Toshi の ようふく',
+  topics:{facts:'たしざん・ひきざん',addsub:'2けたの けいさん',place:'くらい',money:'おかね',time:'とけい',word:'ぶんしょうもんだい',cba:'CBA #3 Review'},
+  mixed:'ミックス さんぽ', level:l=>`レベル ${l}`,
+  stepsLeft:(n,p)=>`${p} まで あと ${n}ほ`,
+  paused:'おやすみ ちゅう — タップで つづける', check:'こたえる', next:'つぎへ',
+  great:['すごい！','せいかい！','やったね！','ワン！ せいかい！','ばっちり！'],
+  tryAgain:'おしい！ もういちど。', answerIs:'こたえは',
+  levelUp:(t,l)=>`⭐ レベルアップ！ ${t} は レベル ${l}！`,
+  levelDown:(t,l)=>`${t} は レベル ${l} で もうすこし れんしゅう。`,
+  reached:p=>`Toshi が ${p} に ついたよ！`, newItem:'あたらしい アイテム：', bonus:n=>`ボーナス +${n}`, keepWalking:'さんぽを つづける',
+  goalTitle:m=>`${m}ふん できた！`, goalSub:'Toshi も おおよろこび。つづけても やすんでも いいよ。', keepGoing:'つづける', takeBreak:'おうちに もどる',
+  grownups:'おとなの へや', lang:'English', sound:s=>`おと ${s?'オン':'オフ'}`,
+  sync:{local:'この きかい に ほぞん',saved:'ほぞん しました',saving:'ほぞん ちゅう…',error:'オンライン ほぞん しっぱい'},
+  listen:'きく', minOf:(a,b)=>`${a} / ${b}ふん`, minBig:'ふん', week:n=>`こんしゅう ${n}にち`,
+  slow:'ゆっくり！ よく みてから こたえよう。', newTag:'まずは ここから',
+  walkDone:'さんぽ おわり！', walkSub:(q,ok)=>`${q}もん こたえて、${ok}もん いっかいで せいかい！`,
+  showGrownup:'おとなの ひとに みせてね：', ok:'OK',
+  hint:{colAdd:'一のくらいから はじめよう。10 いじょうに なったら つぎの くらいに 1 くりあげ。',colSub:'一のくらいから はじめよう。うえの かずが ちいさいときは つぎの くらいから 1 かりる。',
+   makeTen:'まず 10を つくってみよう。',thinkAdd:'たしざんで かんがえよう。',three:'まず 2つを たして、それから 3つめを たそう。',
+   countUp:'はじめの かずから かぞえて いこう。',place:'百のくらい、十のくらい、一のくらいの じゅんに みよう。',coins:'おおきい コインから かぞえよう。',
+   change:'ねだんから もっている おかねまで かぞえよう。',clock:'みじかい はりは なんじ。ながい はりは 5ずつ かぞえよう。',word:'もういちど よもう。あわせる？ へらす？'},
+  q:{
+   blocks:'ブロックは いくつ？', value:(d,n)=>`${n} の <span class="hl">${d}</span> は いくつを あらわす？`,
+   compare:'○に はいる きごうは？', more:(n,d)=>`${n} より ${Math.abs(d)} ${d>0?'おおきい':'ちいさい'} かずは？`,
+   coins:'ぜんぶで いくら？', change:(h,c)=>`${h} もっています。${c} の おもちゃを かいました。のこりは いくら？`,
+   clock:'なんじ なんぷん？', elapsed:a=>`いまは この じかん。${a===60?'1じかん':a+(a===30?'ぷん':'ふん')} あとは なんじ なんぷん？`
+  }
+ }
+};
+
+/* ---------- helpers ---------- */
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const pad2=n=>String(n).padStart(2,'0');
+const mmss=s=>Math.floor(s/60)+':'+pad2(s%60);
+const fmtT=(h,m)=>h+':'+pad2(m);
+const money=c=>c>=100?'$'+(c/100).toFixed(2):c+'¢';
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function todayStr(d=new Date()){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
+function nowHM(){const d=new Date();return pad2(d.getHours())+':'+pad2(d.getMinutes());}
+const L=()=>state.lang==='jp'?'jp':'en';
+const T=()=>S[L()];
+const MINUS='−';
+
+/* ---------- state ---------- */
+function defaultState(){
+  const topics={};TOPICS.forEach(t=>topics[t]={lvl:1,n:0,ok:0,solo:0,recent:[]});
+  return {v:1,lang:'en',sound:true,goalMin:15,bones:0,steps:0,wear:[],topics,missed:[],missCounts:{},qCount:0,last:[],paperAt:0,updatedAt:0,cba:{}};
+}
+function normalize(s){
+  const d=defaultState();
+  const out=Object.assign(d,s||{});
+  TOPICS.forEach(t=>{out.topics[t]=Object.assign({lvl:1,n:0,ok:0,solo:0,recent:[]},(s&&s.topics&&s.topics[t])||{});});
+  if(!Array.isArray(out.missed))out.missed=[];
+  if(!Array.isArray(out.wear))out.wear=[];
+  if(!Array.isArray(out.last))out.last=[];
+  if(!out.missCounts||typeof out.missCounts!=='object')out.missCounts={};
+  if(!out.cba||typeof out.cba!=='object')out.cba={};
+  return out;
+}
+function newDay(date){return {date,sec:0,q:0,ok:0,goalHit:false,sessions:[],byTopic:{}};}
+
+let state=defaultState();
+let daysCache={};
+try{const s=localStorage.getItem(LS_STATE);if(s)state=normalize(JSON.parse(s));}catch(e){}
+try{const d=localStorage.getItem(LS_DAYS);if(d)daysCache=JSON.parse(d)||{};}catch(e){}
+let day=daysCache[todayStr()]?clone(daysCache[todayStr()]):newDay(todayStr());
+
+const store={db:null,sync:'local'};
+let screen='home', mode='mix', cur=null, session=null, sessionInDay=false;
+let lastTap=Date.now(), advanceTimer=null, wasActive=false;
+
+/* ---------- persistence ---------- */
+function saveLocal(){
+  daysCache[day.date]=clone(day);
+  const keys=Object.keys(daysCache).sort();
+  while(keys.length>90){delete daysCache[keys.shift()];}
+  try{localStorage.setItem(LS_STATE,JSON.stringify(state));localStorage.setItem(LS_DAYS,JSON.stringify(daysCache));}catch(e){}
+}
+const writers={};
+function dbWrite(path,data){
+  if(!store.db)return;
+  const w=writers[path]||(writers[path]={busy:false,pending:null});
+  w.pending=data;
+  if(w.busy)return;
+  w.busy=true;setSync('saving');
+  (async()=>{
+    while(w.pending){
+      const d=w.pending;w.pending=null;
+      try{await store.db.doc(path).set(d);setSync('saved');}
+      catch(e){
+        if(e&&e.code==='unavailable'){
+          await sleep(700+Math.random()*900);
+          try{await store.db.doc(path).set(d);setSync('saved');}catch(e2){setSync('error');}
+        }else setSync('error');
+      }
+    }
+    w.busy=false;
+  })();
+}
+function saveAll(){
+  state.updatedAt=Date.now();
+  saveLocal();
+  dbWrite('progress/player',clone(state));
+  dbWrite('days/'+day.date,clone(day));
+}
+function setSync(s){store.sync=s;const el=document.getElementById('sync');if(el)el.textContent=T().sync[s];}
+
+async function initDb(){
+  const c=window.claude;
+  if(!c||typeof c.use!=='function'){setSync('local');return;}
+  let db=null;
+  try{db=await c.use('db');}catch(e){db=null;}
+  if(!db){setSync('local');return;}
+  store.db=db;
+  try{
+    const p=await db.doc('progress/player').get();
+    let pushLocal=false;
+    if(p.exists){
+      const r=p.data();
+      if((r.updatedAt||0)>=(state.updatedAt||0))state=normalize(clone(r));
+      else pushLocal=true;
+    }else if(state.updatedAt)pushLocal=true;
+    const qs=await db.collection('days').orderBy('date','desc').limit(60).get();
+    qs.docs.forEach(d=>{
+      const r=d.data();if(!r||!r.date)return;
+      const loc=daysCache[r.date];
+      if(!loc||(r.sec||0)>=(loc.sec||0))daysCache[r.date]=clone(r);
+    });
+    const remoteToday=daysCache[day.date];
+    if(remoteToday&&(remoteToday.sec||0)>day.sec){
+      day=clone(remoteToday);
+      if(session&&sessionInDay){day.sessions.push(session);}
+    }
+    setSync('saved');
+    if(pushLocal)saveAll();
+    if(screen==='home'||screen==='parents')render();
+  }catch(e){setSync('error');}
+}
+
+/* ---------- problem generators (TEKS grade 2) ---------- */
+function genFacts(l){
+  if(l===1){const a=R(0,10),b=R(0,10-a);return {type:'arith',a,b,op:'+',ans:a+b};}
+  if(l===2){const a=R(2,10),b=R(Math.max(1,11-a),10);return {type:'arith',a,b,op:'+',ans:a+b};}
+  if(l===3){const c=R(6,20),b=R(1,Math.min(10,c));return {type:'arith',a:c,b,op:'-',ans:c-b};}
+  if(l===4){const a=R(1,10),c=R(a+1,Math.min(20,a+10));return {type:'missing',a,c,ans:c-a};}
+  const a=R(1,9),b=R(1,9),c=R(1,Math.max(1,Math.min(9,20-a-b)));
+  return {type:'arith3',a,b,c,ans:a+b+c};
+}
+function genAddSub(l){
+  let a=0,b=0,op='+';
+  const o=x=>x%10, t=x=>Math.floor(x/10)%10;
+  for(let i=0;i<300;i++){
+    if(l===1){op=pick(['+','-']);a=R(11,89);b=R(1,9);
+      if(op==='+'&&o(a)+b<10)break; if(op==='-'&&o(a)>=b)break;}
+    else if(l===2){op=pick(['+','-']);a=R(11,89);b=R(10,89);
+      if(op==='+'&&o(a)+o(b)<10&&a+b<100)break; if(op==='-'&&a>b&&o(a)>=o(b))break;}
+    else if(l===3){op='+';a=R(11,89);b=R(11,89);if(o(a)+o(b)>=10&&a+b<100)break;}
+    else if(l===4){op='-';a=R(21,99);b=R(11,a-1);if(o(a)<o(b))break;}
+    else{op=pick(['+','-']);a=R(110,899);b=R(10,399);
+      if(op==='+'&&a+b<1000&&(o(a)+o(b)>=10||t(a)+t(b)>=10))break;
+      if(op==='-'&&a>b&&(o(a)<o(b)||t(a)<t(b)))break;}
+  }
+  return {type:'arith',a,b,op,ans:op==='+'?a+b:a-b,col:true};
+}
+function genPlace(l){
+  if(l===1){const t=R(1,9),o=R(0,9);return {type:'pv_blocks',h:0,t,o,ans:t*10+o};}
+  if(l===2){const h=R(1,9),t=R(0,9),o=R(0,9);return {type:'pv_blocks',h,t,o,ans:h*100+t*10+o};}
+  if(l===3){
+    if(Math.random()<.5){const h=R(1,9),t=R(0,9),o=R(0,9);return {type:'pv_expanded',h,t,o,ans:h*100+t*10+o};}
+    for(;;){const n=R(102,987),pos=pick([0,1,2]),pv=[100,10,1][pos],d=Math.floor(n/pv)%10;
+      if(d!==0&&String(n).split('').filter(x=>x===String(d)).length===1)return {type:'pv_value',n,pos,d,ans:d*pv};}
+  }
+  if(l===4){
+    const x=R(100,999);let y;const m=R(0,3);
+    if(m===0)y=x;else if(m===1){const s=String(x);y=Number(s[0]+s[2]+s[1]);}else y=R(100,999);
+    return {type:'pv_compare',x,y,ans:x<y?'<':x>y?'>':'=',choices:['<','=','>']};
+  }
+  const n=R(110,889),d=pick([10,-10,100,-100]);return {type:'pv_more',n,d,ans:n+d};
+}
+function coinsOf(q,d,n,p){return [].concat(Array(q).fill(25),Array(d).fill(10),Array(n).fill(5),Array(p).fill(1));}
+function genMoney(l){
+  if(l===1){const n=R(1,3),p=R(1,5);return {type:'coins',coins:coinsOf(0,0,n,p),ans:n*5+p};}
+  if(l===2){const d=R(1,3),n=R(0,2),p=R(0,4);return {type:'coins',coins:coinsOf(0,d,n,p),ans:d*10+n*5+p};}
+  if(l===3||l===5){for(;;){const q=R(1,3),d=R(0,3),n=R(0,2),p=R(0,4),tot=q*25+d*10+n*5+p;
+    if(tot<=100){const c=coinsOf(q,d,n,p);return {type:'coins',coins:l===5?shuffle(c):c,ans:tot};}}}
+  const have=pick([50,75,99,100]),cost=R(12,have-5);return {type:'change',have,cost,ans:have-cost};
+}
+function timeChoices(h,m,orig){
+  const wrap=x=>((x-1+120)%12)+1;
+  const right=fmtT(h,m);const set=new Set([right]);
+  const cand=[fmtT(wrap(h+1),m),fmtT(wrap(h-1),m),fmtT(wrap(m/5||12),(h*5)%60),fmtT(h,(m+30)%60)];
+  if(m>0)cand.push(fmtT(h,m/5));
+  if(orig)cand.push(fmtT(orig.h,orig.m));
+  for(const c of shuffle(cand)){if(set.size>=4)break;set.add(c);}
+  while(set.size<4)set.add(fmtT(R(1,12),R(0,11)*5));
+  return shuffle([...set]);
+}
+function genTime(l){
+  const h=R(1,12);let m;
+  if(l===5&&Math.random()<.5){
+    const add=pick([15,30,60]);m=pick([0,15,30,45]);
+    const tot=h*60+m+add;const nh=((Math.floor(tot/60)-1)%12)+1,nm=tot%60;
+    return {type:'elapsed',h,m,add,ans:fmtT(nh,nm),choices:timeChoices(nh,nm,{h,m})};
+  }
+  if(l===1)m=0;else if(l===2)m=pick([0,30]);else if(l===3)m=pick([0,15,30,45]);
+  else if(l===4)m=R(0,11)*5;else m=pick([40,45,50,55,5,10,R(0,11)*5]);
+  return {type:'clock',h,m,ans:fmtT(h,m),choices:timeChoices(h,m)};
+}
+function genWord(l){
+  const oi=R(0,OBJS.length-1);
+  let A=pick(NAMES);const B=pick(NAMES.filter(n=>n!==A));
+  if(OBJS[oi].en==='dog treats')A={en:'Toshi',jp:'Toshi'};
+  let kind,a,b,c=0;
+  if(l===1){kind='join';a=R(2,12);b=R(1,20-a);}
+  else if(l===2){kind='sep';a=R(15,50);b=R(1,Math.max(1,a%10));}
+  else if(l===3){kind=pick(['join','sep']);if(kind==='join'){a=R(15,60);b=R(15,99-a);}else{a=R(30,99);b=R(11,a-5);}}
+  else if(l===4){kind='cmp';a=R(20,99);b=R(10,a-1);}
+  else{kind='two';a=R(20,60);b=R(5,30);c=R(5,a+b-5);}
+  const ans=kind==='join'?a+b:kind==='two'?a+b-c:a-b;
+  return {type:'word',kind,o:oi,A,B,a,b,c,ans};
+}
+/* CBA-START: CBA #3 review (add and subtract within 100). Story problems, bar models, equations. New numbers every time. */
+const CBA_THINGS=['cards','stickers','marbles','shells','pencils','beads','buttons','toy cars','ribbons','blocks'];
+const CBA_WHO=[{n:'Hana',he:'she'},{n:'Kai',he:'he'},{n:'Mia',he:'she'},{n:'Leo',he:'he'},{n:'Zoe',he:'she'},{n:'Omar',he:'he'},{n:'Ana',he:'she'},{n:'Ben',he:'he'}];
+const CBA_SKILLS=[
+  {id:'sold',q:'1',name:'Some are gone: find the missing part'},
+  {id:'regroup',q:'2',name:'Spot the problems that need regrouping'},
+  {id:'match',q:'3',name:'Match a story to an equation'},
+  {id:'fact',q:'4',name:'Related addition fact'},
+  {id:'ringseq',q:'5',name:'Pick the equations for a two-step story'},
+  {id:'ringsplan',q:'5',name:'Two-step story: plan and solve'},
+  {id:'compare',q:'6',name:'More than / fewer than'},
+  {id:'hop',q:'7',name:'Add up on a number line'},
+  {id:'rest',q:'8',name:'Find the rest (two steps)'},
+  {id:'four',q:'9',name:'Add four numbers'},
+  {id:'start',q:'10',name:'Find the start'}
+];
+const ucf=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const borrows=(a,b)=>a%10<b%10;
+const carries=(a,b)=>a%10+b%10>=10;
+function cbaPair(){const a=pick(CBA_WHO);return [a,pick(CBA_WHO.filter(x=>x!==a))];}
+function wantRegroup(l){return l<=1?false:l===2?Math.random()<.5:Math.random()<.8;}
+function subPair(l){
+  const want=wantRegroup(l);
+  for(let i=0;i<400;i++){const a=R(22,99),b=R(11,a-11);if(borrows(a,b)===want)return [a,b];}
+  return want?[53,17]:[55,22];
+}
+function addPair(l){
+  const want=wantRegroup(l);
+  for(let i=0;i<400;i++){const a=R(11,75),b=R(11,99-a);if(carries(a,b)===want)return [a,b];}
+  return want?[37,25]:[32,25];
+}
+function mkPlan(whole,parts,op,nums,extra){
+  const res=op==='+'?nums.reduce((s,n)=>s+n,0):nums[0]-nums[1];
+  return {whole,parts,op,nums,res,tokens:shuffle([...new Set([whole,...parts,...(extra||[])])])};
+}
+const eqStr=pl=>`${pl.nums.join(pl.op==='+'?' + ':` ${MINUS} `)} = ${pl.res}`;
+function toDirect(p){
+  const pl=p.plans[p.plans.length-1],ans=pl.res,c=[];
+  if(pl.nums.length===2)c.push(pl.op==='+'?Math.abs(pl.nums[0]-pl.nums[1]):pl.nums[0]+pl.nums[1]);
+  if(p.plans.length>1)c.push(p.plans[0].res);
+  if(pl.nums.length>2)c.push(ans-pl.nums[pl.nums.length-1]);
+  c.push(ans+10,ans-10,ans+1,ans-1,ans+2,ans-2);
+  const seen=new Set([ans]),wrong=[];
+  for(const x of c){if(x>0&&x<=99&&!seen.has(x)&&wrong.length<3){seen.add(x);wrong.push(x);}}
+  return {type:'pick',skill:p.skill,prompt:p.text,ans:String(ans),choices:shuffle([ans,...wrong].map(String)),plans:p.plans,lab:p.lab,talk:p.talk,hintText:''};
+}
+function planProblem(skill,text,plans,l,talk){
+  const p={type:'plan',skill,text,plans,ans:plans[plans.length-1].res,stages:l<=3?['bar','op','solve']:['op','solve'],lab:'Story: '+plans.map(eqStr).join(', then '),talk};
+  return l>=5?toDirect(p):p;
+}
+function cbaSold(l){
+  const [a,b]=subPair(l),t=pick(CBA_THINGS),[w]=cbaPair(),He=ucf(w.he);
+  const text=pick([
+    `${w.n} brought ${a} ${t} to the school fair. ${He} sold some of them. ${He} still has ${b} ${t} left. How many ${t} did ${w.n} sell?`,
+    `There were ${a} ${t} in a box. ${w.n} took some out. Now ${b} ${t} are in the box. How many ${t} did ${w.n} take out?`,
+    `${w.n} has ${a} ${t}. ${He} gives some to a friend. Now ${w.he} has ${b} ${t}. How many ${t} did ${w.n} give away?`
+  ]);
+  return planProblem('sold',text,[mkPlan(a,[b,'?'],'-',[a,b])],l,'Ask: “What number is the whole in this story? How do you know?”');
+}
+function cbaStart(l){
+  const [a,b]=addPair(l),t=pick(CBA_THINGS),[w]=cbaPair(),He=ucf(w.he);
+  const text=pick([
+    `${w.n}'s family had some ${t}. They had ${a} ${t} left after they gave away ${b}. How many ${t} did they have at the start?`,
+    `Some ${t} were in a jar. ${w.n} took out ${b}. Now ${a} ${t} are still in the jar. How many ${t} were in the jar at the start?`,
+    `${w.n} had some ${t}. ${He} gave ${b} to a friend. Now ${w.he} has ${a}. How many ${t} did ${w.n} have at the start?`
+  ]);
+  return planProblem('start',text,[mkPlan('?',[a,b],'+',[a,b])],l,'Ask: “Why do we add here, even though some were taken away?”');
+}
+function cbaFour(l){
+  for(let i=0;i<400;i++){
+    const n=[R(10,29),R(10,29),R(10,29),R(10,29)];
+    if(new Set(n).size<4||n[0]+n[1]+n[2]+n[3]>99)continue;
+    if(l<=1&&n.reduce((s,x)=>s+x%10,0)>=10)continue;
+    const [a,b,c,d]=n,t=pick(CBA_THINGS),[w]=cbaPair();
+    return planProblem('four',`${w.n} has ${a} red, ${b} blue, ${c} green, and ${d} yellow ${t}. How many ${t} does ${w.n} have in all?`,[mkPlan('?',n,'+',n)],l,'Ask: “Which two numbers would you add first? Why?”');
+  }
+  return planProblem('four','Ben has 11 red, 22 blue, 14 green, and 20 yellow beads. How many beads does Ben have in all?',[mkPlan('?',[11,22,14,20],'+',[11,22,14,20])],l,'Ask: “Which two numbers would you add first? Why?”');
+}
+function restNums(l){
+  for(let i=0;i<600;i++){
+    const T=R(40,99),x=R(11,45),y=R(11,45),r=T-x-y;
+    if(r<2||x===y||T-x===y||T-x===x)continue;
+    if(l<=1&&(borrows(T,x)||borrows(T-x,y)||carries(x,y)||borrows(T,x+y)))continue;
+    return [T,x,y];
+  }
+  return [58,24,13];
+}
+function cbaRest(l){
+  const [T,x,y]=restNums(l),[w]=cbaPair();
+  const text=pick([
+    `${w.n} has ${T} shape blocks. ${x} of the shapes are squares. ${y} shapes are triangles. The rest of the shapes are circles. How many of the shapes are circles?`,
+    `A box has ${T} beads. ${x} beads are red. ${y} beads are blue. The rest of the beads are green. How many beads are green?`,
+    `${w.n} picked ${T} flowers. ${x} are tulips. ${y} are daisies. The rest are roses. How many flowers are roses?`
+  ]);
+  const plans=Math.random()<.5
+    ?[mkPlan(T,[x,'?'],'-',[T,x],[y]),mkPlan(T-x,[y,'?'],'-',[T-x,y])]
+    :[mkPlan('?',[x,y],'+',[x,y],[T]),mkPlan(T,[x+y,'?'],'-',[T,x+y])];
+  return planProblem('rest',text,plans,l,'Ask: “Is there a different order you could use to solve this?”');
+}
+function ringNums(l){
+  for(let i=0;i<600;i++){
+    const T=R(25,70),k=R(11,T-5),m=R(11,40),x=T-k;
+    if(T+k+m>99||x+m>99||T<=m||k===m||T===m||x===m||x<=k)continue;
+    if(l<=1&&(borrows(T,k)||carries(x,m)))continue;
+    return [T,k,m];
+  }
+  return [47,12,21];
+}
+function ringStory(T,k,m,w){
+  const c=pick([['heart','star'],['round','square'],['red','blue'],['big','small']]),thing=pick(['rings','beads','buttons','stickers']);
+  return {text:`There are ${T} ${thing} in a box. Some are ${c[0]} ${thing}. ${k} are ${c[1]} ${thing}. ${w.n} adds ${m} ${c[0]} ${thing} to the box. How many ${c[0]} ${thing} are in the box now?`};
+}
+function cbaRingsPlan(l){
+  const [T,k,m]=ringNums(l),[w]=cbaPair(),x=T-k;
+  return planProblem('ringsplan',ringStory(T,k,m,w).text,[mkPlan(T,[k,'?'],'-',[T,k],[m]),mkPlan('?',[x,m],'+',[x,m])],l,'Ask: “What did you need to find out first? Why?”');
+}
+function cbaRingsEq(l){
+  const [T,k,m]=ringNums(l),[w]=cbaPair(),x=T-k,M=MINUS;
+  const right=`${T} ${M} ${k} = ${x}|${x} + ${m} = ${x+m}`;
+  const wrong=[`${T} + ${k} = ${T+k}|${T+k} + ${m} = ${T+k+m}`,`${T} ${M} ${m} = ${T-m}|${T-m} + ${k} = ${T-m+k}`,`${T} ${M} ${k} = ${x}|${x} ${M} ${k} = ${x-k}`];
+  return {type:'pick',skill:'ringseq',prompt:ringStory(T,k,m,w).text+'<br>Which equations show a way to solve the problem?',ans:right,choices:shuffle([right,...wrong]),
+    why:`First find how many of that kind were in the box: ${T} ${M} ${k} = ${x}. Then add the new ones: ${x} + ${m} = ${x+m}.`,
+    hintText:'Step 1: take away the kind you are not counting. Step 2: add the new ones.',lab:`Pick equations: ${T}, ${k}, ${m}`,talk:'Ask: “What does each equation tell you about the story?”'};
+}
+function cbaCompare(l){
+  const M=MINUS,[w,w2]=cbaPair(),He=ucf(w.he),t=pick(CBA_THINGS);
+  let a=40,b=15;
+  for(let i=0;i<400;i++){a=R(30,75);b=R(11,a-5);if(a+b<=99&&a!==2*b&&(l>1||(!borrows(a,b)&&!carries(a,b))))break;}
+  const f=R(0,3),sub=f===0||f===3;
+  const text=[
+    `${w.n} scored ${a} points in the game. ${He} scored ${b} more points than ${w2.n}. How many points did ${w2.n} score?`,
+    `${w.n} has ${a} ${t}. ${He} has ${b} fewer ${t} than ${w2.n}. How many ${t} does ${w2.n} have?`,
+    `${w2.n} has ${a} ${t}. ${w.n} has ${b} more ${t} than ${w2.n}. How many ${t} does ${w.n} have?`,
+    `${w2.n} has ${a} ${t}. ${w.n} has ${b} fewer ${t} than ${w2.n}. How many ${t} does ${w.n} have?`
+  ][f];
+  const ans=sub?a-b:a+b;
+  const right=sub?`${a} ${M} ${b} = ?`:`${a} + ${b} = ?`;
+  const wrong=sub?[`${a} + ${b} = ?`,`${a+b} ${M} ${a} = ?`,`? ${M} ${a} = ${b}`]:[`${a} ${M} ${b} = ?`,`? + ${b} = ${a}`,`${a} ${M} ? = ${b}`];
+  return {type:'pick',skill:'compare',prompt:text+'<br>Which equation would help you solve the problem?',ans:right,choices:shuffle([right,...wrong]),form:f,a,b,solution:ans,
+    why:sub?`The one we want has less, so subtract: ${a} ${M} ${b} = ${ans}.`:`The one we want has more, so add: ${a} + ${b} = ${ans}.`,
+    hintText:'Who has more? Is the one we want bigger or smaller than the number we know?',lab:`More/fewer: ${sub?`${a} ${M} ${b}`:`${a} + ${b}`}`,talk:'Ask: “Who has more? How can you tell from the story?”'};
+}
+function cbaMatch(l){
+  const M=MINUS,[x,y]=subPair(Math.max(l,2)),a=x,b=y,isSub=Math.random()<.65,[w,w2]=cbaPair(),He=ucf(w.he);
+  const sv=t=>[
+    `${w.n} has ${a} ${t}. ${He} gives ${b} ${t} to a friend. How many ${t} does ${w.he} have left?`,
+    `There are ${a} ${t} on the table. ${w.n} takes away ${b}. How many ${t} are still on the table?`,
+    `${w.n} had ${a} ${t}. ${He} lost ${b} of them. How many ${t} does ${w.he} have now?`,
+    `${w.n} has ${a} ${t}. ${w2.n} has ${b} ${t}. How many more ${t} does ${w.n} have than ${w2.n}?`];
+  const av=t=>[
+    `A store had ${b} ${t} and got ${a} more. How many ${t} does the store have now?`,
+    `${w.n} found ${a} ${t} in the morning and ${b} more in the afternoon. How many ${t} did ${w.he} find in all?`,
+    `There are ${a} ${t} in a bag. ${w.n} puts in ${b} more. How many ${t} are in the bag now?`,
+    `${w.n} has ${a} ${t}. ${w2.n} has ${b} ${t}. How many ${t} do they have together?`];
+  const things=shuffle(CBA_THINGS);
+  const r=isSub?pick(sv(things[0])):pick(av(things[0]));
+  const others=shuffle(isSub?av(things[1]):sv(things[1])).slice(0,3);
+  const eq=isSub?`${a} ${M} ${b}`:`${a} + ${b}`;
+  const choices=shuffle([r,...others]);
+  return {type:'pick',skill:'match',prompt:`Which story matches this equation?<br><span class="hl">${eq} = ?</span>`,ans:r,choices,kinds:choices.map(c=>c===r?(isSub?'sub':'add'):(isSub?'add':'sub')),isSub,
+    why:isSub?`${eq} means taking away or finding how many more. That story starts with ${a} and takes away ${b}, or compares ${a} and ${b}.`:`${eq} means putting ${a} and ${b} together.`,
+    hintText:isSub?'Look for a story where things go away or get compared.':'Look for a story where things are put together.',lab:`Match story: ${eq}`,talk:`Ask her to make up her own story for ${eq}.`};
+}
+function cbaFact(l){
+  const M=MINUS;let c,b;
+  if(l<=1){c=R(13,20);b=R(11,c-2);}else{c=R(25,99);b=R(11,c-11);if(c-b===b)b++;}
+  const d=c-b,right=`${b} + ${d}`;
+  return {type:'pick',skill:'fact',prompt:`Which related addition fact can help you solve <span class="hl">${c} ${M} ${b}</span>?`,ans:right,choices:shuffle([right,`${d} + ${d}`,`${b} + ${c}`,`${c} + ${d}`]),b,c,d,
+    why:`${b}, ${d} and ${c} are one fact family:<br>${b} + ${d} = ${c}<br>${d} + ${b} = ${c}<br>${c} ${M} ${b} = ${d}<br>${c} ${M} ${d} = ${b}`,
+    hintText:`What goes with ${b} to make ${c}?`,lab:`Related fact: ${c} ${M} ${b}`,talk:`Ask: “What are all four facts in the family for ${b}, ${d} and ${c}?”`};
+}
+function cbaRegroup(l){
+  const M=MINUS,items=[],seen=new Set();
+  const add=(s,reg,why)=>{if(seen.has(s))return false;seen.add(s);items.push({s,reg,why});return true;};
+  const mixAdd=l>=4;
+  while(items.filter(i=>i.reg).length<2){
+    const useAdd=mixAdd&&items.filter(i=>i.reg).length===1&&Math.random()<.5;
+    if(useAdd){const a=R(11,70),b=R(11,99-a);if(carries(a,b))add(`${a} + ${b} = ?`,true,`The ones make 10 or more, so regroup.`);}
+    else{const a=R(31,99),b=R(11,a-5);if(borrows(a,b))add(`${a} ${M} ${b} = ?`,true,`${a%10} ones is less than ${b%10} ones, so regroup.`);}
+  }
+  while(items.filter(i=>!i.reg).length<2){
+    const a=R(31,99),b=R(11,a-5);if(!borrows(a,b))add(`${a} ${M} ${b} = ?`,false,`${a%10} ones is enough to take away ${b%10} ones. No regrouping.`);
+  }
+  const right=items.filter(i=>i.reg).map(i=>i.s).sort();
+  return {type:'multi',skill:'regroup',prompt:'Choose the problems that you will solve by regrouping.<br>Select the <b>TWO</b> correct answers.',choices:shuffle(items.map(i=>i.s)),ans:right.join('||'),items,
+    why:items.map(i=>`<div><b>${i.s.replace(' = ?','')}:</b> ${i.why}</div>`).join(''),hintText:'Look at the ones place. Is the top number smaller than the bottom number?',lab:'Regroup: '+right.join(' and ').replace(/ = \?/g,''),talk:'Ask: “How can you tell if you need to regroup without solving it?”'};
+}
+function cbaHop(l){
+  let a=59,b=37;
+  for(let i=0;i<400;i++){const [x,y]=subPair(l);if(x-y>=12&&x-y<=49&&(x-y)%10!==0){a=x;b=y;break;}}
+  const ans=a-b,jumps=[...Array(Math.floor(ans/10)).fill(10),ans%10],M=MINUS;
+  return {type:'hop',skill:'hop',a,b,jumps,hide:l>=3,ans,why:`Add the jumps: ${jumps.map(j=>'+'+j).join(' ')} = ${ans}. So ${a} ${M} ${b} = ${ans}.`,
+    hintText:'Add up all the jumps. Count the tens first.',lab:`Number line: ${a} ${M} ${b}`,talk:`Ask: “How does adding up from ${b} help you find ${a} ${MINUS} ${b}?”`};
+}
+const CBA_GEN={sold:cbaSold,regroup:cbaRegroup,match:cbaMatch,fact:cbaFact,ringseq:cbaRingsEq,ringsplan:cbaRingsPlan,compare:cbaCompare,hop:cbaHop,rest:cbaRest,four:cbaFour,start:cbaStart};
+function hopsSVG(b,jumps,hide){
+  const wOf=j=>j>=10?120:Math.max(72,j*14);
+  let x=30,v=b;const pts=[{x,v}];
+  jumps.forEach(j=>{x+=wOf(j);v+=j;pts.push({x,v});});
+  const W=x+30,y=104;
+  let s=`<svg viewBox="0 0 ${W} 142" width="${W}" style="max-width:100%;height:auto" role="img" aria-label="number line">`;
+  s+=`<line class="nl-line" x1="6" y1="${y}" x2="${W-6}" y2="${y}"/>`;
+  pts.forEach(p=>{s+=`<line class="nl-tick" x1="${p.x}" y1="${y-10}" x2="${p.x}" y2="${y+10}"/><text class="nl-num key" x="${p.x}" y="${y+32}" text-anchor="middle">${p.v}</text>`;});
+  jumps.forEach((j,i)=>{const a=pts[i].x,c=pts[i+1].x,m=(a+c)/2;
+    s+=`<path class="nl-arc" d="M${a} ${y-12} Q${m} ${y-82} ${c} ${y-12}"/><text class="nl-lab" x="${m}" y="${y-58}" text-anchor="middle">${hide?'?':'+'+j}</text>`;});
+  return s+'</svg>';
+}
+/* CBA-END */
+let cbaDeck=[],cbaLast=null;
+function nextCbaSkill(){
+  if(!cbaDeck.length){
+    const ids=CBA_SKILLS.map(s=>s.id);
+    const weak=ids.filter(id=>{const r=(state.cba[id]||{}).r||[];return r.length>=3&&r.reduce((a,b)=>a+b,0)/r.length<.7;});
+    cbaDeck=shuffle(ids.concat(weak));
+    if(cbaDeck[0]===cbaLast)cbaDeck.push(cbaDeck.shift());
+  }
+  return cbaLast=cbaDeck.shift();
+}
+function genCBA(l){return CBA_GEN[nextCbaSkill()](l);}
+const GEN={facts:genFacts,addsub:genAddSub,place:genPlace,money:genMoney,time:genTime,word:genWord,cba:genCBA};
+
+function label(p){
+  if(p.lab)return p.lab;
+  const op=p.op==='-'?'−':'+';
+  switch(p.type){
+    case 'arith':return `${p.a} ${op} ${p.b}`;
+    case 'arith3':return `${p.a} + ${p.b} + ${p.c}`;
+    case 'missing':return `${p.a} + ? = ${p.c}`;
+    case 'pv_blocks':return `blocks → ${p.ans}`;
+    case 'pv_expanded':return `${p.h*100} + ${p.t*10} + ${p.o}`;
+    case 'pv_value':return `value of ${p.d} in ${p.n}`;
+    case 'pv_compare':return `${p.x} ○ ${p.y}`;
+    case 'pv_more':return `${Math.abs(p.d)} ${p.d>0?'more':'less'} than ${p.n}`;
+    case 'coins':return `coins = ${p.ans}¢`;
+    case 'change':return `${money(p.have)} − ${p.cost}¢`;
+    case 'clock':return `clock ${p.ans}`;
+    case 'elapsed':return `${fmtT(p.h,p.m)} + ${p.add} min`;
+    case 'word':return `story: ${wordEq(p)}`;
+  }
+  return '?';
+}
+function wordEq(p){
+  if(p.kind==='join')return `${p.a} + ${p.b} = ${p.ans}`;
+  if(p.kind==='two')return `${p.a} + ${p.b} − ${p.c} = ${p.ans}`;
+  return `${p.a} − ${p.b} = ${p.ans}`;
+}
+function wordText(p,lang){
+  const o=OBJS[p.o],l=lang||L(),A=p.A[l],B=p.B[l];
+  if(l==='en'){
+    if(p.kind==='join')return `${A} has ${p.a} ${o.en}. ${B} gives ${A} ${p.b} more. How many ${o.en} does ${A} have now?`;
+    if(p.kind==='sep')return `${A} has ${p.a} ${o.en}. ${A} gives ${p.b} to ${B}. How many ${o.en} does ${A} have left?`;
+    if(p.kind==='cmp')return `${A} has ${p.a} ${o.en}. ${B} has ${p.b} ${o.en}. How many more ${o.en} does ${A} have than ${B}?`;
+    return `${A} has ${p.a} ${o.en}. ${B} gives ${A} ${p.b} more. Then ${A} gives ${p.c} to a friend. How many ${o.en} does ${A} have now?`;
+  }
+  if(p.kind==='join')return `${A}は ${o.jp}を ${p.a}${o.c} もっています。${B}が ${p.b}${o.c} くれました。${A}の ${o.jp}は ぜんぶで ${o.q}？`;
+  if(p.kind==='sep')return `${A}は ${o.jp}を ${p.a}${o.c} もっています。${B}に ${p.b}${o.c} あげました。のこりは ${o.q}？`;
+  if(p.kind==='cmp')return `${A}は ${o.jp}を ${p.a}${o.c}、${B}は ${p.b}${o.c} もっています。${A}は ${B}より ${o.q} おおい？`;
+  return `${A}は ${o.jp}を ${p.a}${o.c} もっています。${B}が ${p.b}${o.c} くれました。そのあと ともだちに ${p.c}${o.c} あげました。いま ${o.q}？`;
+}
+
+/* ---------- visuals ---------- */
+function toshiSVG(wear,cls){
+  const w=new Set(wear||[]);
+  return `<svg class="toshi ${cls||''}" viewBox="0 -10 120 132" aria-hidden="true">
+  <g class="tail"><path class="t-fur" d="M86 90 q20 -4 24 -28 q-12 12 -26 18 z"/></g>
+  <ellipse class="t-fur" cx="60" cy="90" rx="30" ry="22"/>
+  <ellipse class="t-belly" cx="60" cy="96" rx="16" ry="14"/>
+  <rect class="t-fur" x="40" y="102" width="12" height="16" rx="6"/>
+  <rect class="t-fur" x="68" y="102" width="12" height="16" rx="6"/>
+  ${w.has('scarf')?'<path class="a-scarf" d="M36 64 q24 12 48 0 l0 9 q-24 12 -48 0 z"/><rect class="a-scarf" x="68" y="70" width="9" height="24" rx="3"/>':''}
+  ${w.has('bandana')?'<path class="a-bandana" d="M37 63 q23 10 46 0 l-23 24 z"/>':''}
+  <ellipse class="t-ear" cx="36" cy="42" rx="10" ry="18" transform="rotate(18 36 42)"/>
+  <ellipse class="t-ear" cx="84" cy="42" rx="10" ry="18" transform="rotate(-18 84 42)"/>
+  <circle class="t-fur" cx="60" cy="44" r="25"/>
+  <ellipse class="t-belly" cx="60" cy="55" rx="13" ry="10"/>
+  <ellipse class="t-nose" cx="60" cy="50" rx="5" ry="3.6"/>
+  <path class="t-line" d="M60 53 v4 M54 58 q6 5 12 0"/>
+  <circle class="t-eye" cx="50" cy="40" r="3.4"/><circle class="t-eye" cx="70" cy="40" r="3.4"/>
+  <circle class="t-shine" cx="51.2" cy="38.8" r="1.1"/><circle class="t-shine" cx="71.2" cy="38.8" r="1.1"/>
+  ${w.has('glasses')?'<rect class="a-glass" x="41" y="34" width="17" height="11" rx="4"/><rect class="a-glass" x="62" y="34" width="17" height="11" rx="4"/><path class="t-line" d="M58 38 h4"/>':''}
+  ${w.has('bow')?'<path class="a-bow" d="M24 22 l11 7 -11 7 z M46 22 l-11 7 11 7 z"/><circle class="a-bow" cx="35" cy="29" r="3.2"/>':''}
+  ${w.has('hat')?'<path class="a-hat" d="M49 23 L60 -4 L71 23 Z"/><circle class="a-pom" cx="60" cy="-4" r="4.5"/>':''}
+  ${w.has('crown')?'<path class="a-crown" d="M43 25 l3 -15 8 8 6 -12 6 12 8 -8 3 15 z"/>':''}
+  </svg>`;
+}
+function clockSVG(h,m){
+  const cx=100,cy=100;let s=`<svg viewBox="0 0 200 200" width="210" height="210" role="img" aria-label="clock"><circle class="clk-face" cx="100" cy="100" r="92"/>`;
+  for(let i=0;i<60;i++){const a=i*6*Math.PI/180,big=i%5===0,r1=big?78:83;
+    s+=`<line class="clk-tick ${big?'big':''}" x1="${cx+r1*Math.sin(a)}" y1="${cy-r1*Math.cos(a)}" x2="${cx+87*Math.sin(a)}" y2="${cy-87*Math.cos(a)}"/>`;}
+  for(let n=1;n<=12;n++){const a=n*30*Math.PI/180;s+=`<text class="clk-num" x="${cx+64*Math.sin(a)}" y="${cy-64*Math.cos(a)+8}" text-anchor="middle">${n}</text>`;}
+  const ha=((h%12)+m/60)*30*Math.PI/180,ma=m*6*Math.PI/180;
+  s+=`<line class="clk-h" x1="100" y1="100" x2="${cx+44*Math.sin(ha)}" y2="${cy-44*Math.cos(ha)}"/>`;
+  s+=`<line class="clk-m" x1="100" y1="100" x2="${cx+70*Math.sin(ma)}" y2="${cy-70*Math.cos(ma)}"/>`;
+  return s+`<circle class="clk-dot" cx="100" cy="100" r="7"/></svg>`;
+}
+function coinSVG(v){
+  const spec={1:{r:20,cls:'coin-p',n:'penny'},5:{r:23,cls:'coin-s',n:'nickel'},10:{r:18,cls:'coin-s',n:'dime'},25:{r:27,cls:'coin-s',n:'quarter'}}[v];
+  const W=62;
+  return `<svg viewBox="0 0 ${W} 74" width="${W}" height="74" aria-label="${spec.n}"><circle class="${spec.cls}" cx="31" cy="30" r="${spec.r}" stroke-width="2.5"/><circle class="${spec.cls}" cx="31" cy="30" r="${spec.r-4}" stroke-width="1" fill="none"/><text class="coin-v" x="31" y="36" text-anchor="middle" font-size="${spec.r>20?16:13}">${v}¢</text><text class="coin-n" x="31" y="71" text-anchor="middle">${spec.n}</text></svg>`;
+}
+function coinsHTML(coins){return `<div class="row" style="justify-content:center;gap:4px">${coins.map(coinSVG).join('')}</div>`;}
+function blocksSVG(h,t,o){
+  const parts=[];let x=0;const H=60;
+  for(let i=0;i<h;i++){let g='';for(let k=1;k<10;k++){g+=`<line class="blk-grid" x1="${x+k*6}" y1="0" x2="${x+k*6}" y2="${H}"/><line class="blk-grid" x1="${x}" y1="${k*6}" x2="${x+H}" y2="${k*6}"/>`;}
+    parts.push(`<rect class="blk-flat" x="${x}" y="0" width="${H}" height="${H}" rx="2"/>${g}`);x+=H+8;}
+  if(h&&(t||o))x+=6;
+  for(let i=0;i<t;i++){let g='';for(let k=1;k<10;k++)g+=`<line class="blk-grid" x1="${x}" y1="${k*6}" x2="${x+8}" y2="${k*6}"/>`;
+    parts.push(`<rect class="blk-rod" x="${x}" y="0" width="8" height="${H}" rx="1.5"/>${g}`);x+=13;}
+  if(t&&o)x+=8;
+  for(let i=0;i<o;i++){const col=Math.floor(i/5),row=i%5;parts.push(`<rect class="blk-one" x="${x+col*11}" y="${H-10-row*11}" width="9" height="9" rx="1.5"/>`);}
+  if(o)x+=Math.ceil(o/5)*11;
+  const W=Math.max(x,10);
+  return `<svg viewBox="-2 -2 ${W+4} ${H+4}" width="${Math.min(W+4,640)}" style="max-width:100%;height:auto" role="img" aria-label="base ten blocks">${parts.join('')}</svg>`;
+}
+
+/* Ten-frames: coral dots = first number, blue dots = second. Filling the first frame shows "make a ten". */
+function tenFramesSVG(a,b){
+  const total=a+b,frames=total>10?2:1,cell=34,gap=18,W=frames*5*cell+(frames-1)*gap;
+  let s=`<svg viewBox="-3 -3 ${W+6} ${2*cell+6}" width="${W+6}" style="max-width:100%;height:auto" role="img" aria-label="ten frame">`;
+  for(let f=0;f<frames;f++)for(let i=0;i<10;i++){
+    const x=f*(5*cell+gap)+(i%5)*cell,y=Math.floor(i/5)*cell,idx=f*10+i;
+    s+=`<rect class="tf-cell" x="${x}" y="${y}" width="${cell}" height="${cell}"/>`;
+    if(idx<total)s+=`<circle class="${idx<a?'tf-a':'tf-b'}" cx="${x+cell/2}" cy="${y+cell/2}" r="${cell*.34}"/>`;
+  }
+  return s+'</svg>';
+}
+/* Number line: Toshi starts at `start` and hops `delta`. When landed, Toshi moves to the answer. */
+function numberLineSVG(lo,hi,start,delta,landed){
+  const W=620,pad=24,y=92,n=hi-lo,step=(W-2*pad)/n,X=v=>pad+(v-lo)*step,end=start+delta;
+  let s=`<svg viewBox="0 0 ${W} 130" width="${W}" style="max-width:100%;height:auto" role="img" aria-label="number line">`;
+  s+=`<line class="nl-line" x1="${pad-10}" y1="${y}" x2="${W-pad+10}" y2="${y}"/>`;
+  for(let v=lo;v<=hi;v++){const key=v===start||(landed&&v===end)||v%10===0;
+    s+=`<line class="nl-tick" x1="${X(v)}" y1="${y-(v%5===0?10:6)}" x2="${X(v)}" y2="${y+(v%5===0?10:6)}"/>`;
+    if(n<=20||v%5===0||key)s+=`<text class="nl-num ${key?'key':''}" x="${X(v)}" y="${y+30}" text-anchor="middle">${v===end&&!landed?'':v}</text>`;}
+  const x1=X(start),x2=X(end),mid=(x1+x2)/2,h=Math.min(70,20+Math.abs(x2-x1)*.35);
+  s+=`<path class="nl-arc" d="M${x1} ${y-12} Q${mid} ${y-12-h} ${x2} ${y-12}"/>`;
+  s+=`<text class="nl-lab" x="${mid}" y="${y-14-h/2}" text-anchor="middle">${delta>0?'+':MINUS}${Math.abs(delta)}</text>`;
+  if(!landed)s+=`<text class="nl-q" x="${x2}" y="${y+32}" text-anchor="middle">?</text>`;
+  const tx=landed?x2:x1;
+  s+=`<g transform="translate(${tx-17} ${y-48})"><svg width="34" height="38" viewBox="0 -10 120 132">${toshiSVG(state.wear).replace(/^<svg[^>]*>/,'').replace(/<\/svg>\s*$/,'')}</svg></g>`;
+  return s+'</svg>';
+}
+function arithVisual(p,landed){
+  if(p.type!=='arith')return '';
+  if(p.topic==='facts'&&p.op==='+'&&p.lvl<=2)return tenFramesSVG(p.a,p.b);
+  if(p.topic==='facts'&&p.op==='-'&&p.lvl<=3)return numberLineSVG(0,20,p.a,-p.b,landed);
+  if(p.topic==='addsub'&&p.lvl===1){const lo=Math.floor(Math.min(p.a,p.ans)/10)*10;return numberLineSVG(lo,lo+10,p.a,p.op==='+'?p.b:-p.b,landed);}
+  return '';
+}
+
+/* ---------- question text + explanations ---------- */
+function qText(p,landed){
+  const q=T().q,op=p.op==='-'?MINUS:'+';
+  switch(p.type){
+    case 'arith':return {t:`${p.a} ${op} ${p.b} = ?`,vis:arithVisual(p,landed)};
+    case 'arith3':return {t:`${p.a} + ${p.b} + ${p.c} = ?`};
+    case 'missing':return {t:`${p.a} + ? = ${p.c}`};
+    case 'pv_blocks':return {t:q.blocks,words:true,vis:blocksSVG(p.h,p.t,p.o)};
+    case 'pv_expanded':return {t:`${p.h*100} + ${p.t*10} + ${p.o} = ?`};
+    case 'pv_value':return {t:q.value(p.d,String(p.n).replace(String(p.d),`<span class="hl">${p.d}</span>`)),words:true};
+    case 'pv_compare':return {t:`${p.x} ○ ${p.y}`,sub:q.compare};
+    case 'pv_more':return {t:q.more(p.n,p.d),words:true};
+    case 'coins':return {t:q.coins,words:true,vis:coinsHTML(p.coins)};
+    case 'change':return {t:q.change(money(p.have),money(p.cost)),words:true};
+    case 'clock':return {t:q.clock,words:true,vis:clockSVG(p.h,p.m)};
+    case 'elapsed':return {t:q.elapsed(p.add),words:true,vis:clockSVG(p.h,p.m)};
+    case 'word':return {t:wordText(p),words:true};
+    case 'plan':return {t:p.text,words:true};
+    case 'pick':case 'multi':return {t:p.prompt,words:true,speak:p.prompt+' '+p.choices.map((c,i)=>'ABCD'[i]+'. '+c).join(' ')};
+    case 'hop':return {t:`The number line shows adding up to find ${p.a} ${MINUS} ${p.b}. What is the difference?`,words:true,vis:hopsSVG(p.b,p.jumps,p.hide)};
+  }
+}
+const PLACE={en:['ones','tens','hundreds'],jp:['一のくらい','十のくらい','百のくらい']};
+function colExplain(a,b,op){
+  const l=L(),en=l==='en';
+  const da=String(a).split('').reverse().map(Number),db=String(b).split('').reverse().map(Number);
+  const n=Math.max(da.length,db.length);const steps=[];const carryRow=Array(n+1).fill('');
+  let carry=0,borrow=0;
+  for(let i=0;i<n;i++){
+    const x=(da[i]||0),y=(db[i]||0),pl=PLACE[l][i]||'';
+    if(op==='+'){
+      const s=x+y+carry;
+      steps.push(en?`${cap(pl)}: ${x} + ${y}${carry?' + 1':''} = ${s}${s>=10&&i<n-1?` → write ${s%10}, carry 1`:''}`:`${pl}: ${x} + ${y}${carry?' + 1':''} = ${s}${s>=10&&i<n-1?` → ${s%10}を かいて 1 くりあがり`:''}`);
+      carry=s>=10&&i<n-1?1:0;if(carry)carryRow[i+1]='1';
+    }else{
+      let top=x-borrow;
+      if(top<y){
+        steps.push(en?`${cap(pl)}: ${top} ${MINUS} ${y} won't work, so borrow 1 from the next place:${top+10} ${MINUS} ${y} = ${top+10-y}`:`${pl}: ${top} ${MINUS} ${y} は できないので 1 かりる → ${top+10} ${MINUS} ${y} = ${top+10-y}`);
+        borrow=1;
+      }else{
+        steps.push(en?`${cap(pl)}: ${top} ${MINUS} ${y} = ${top-y}${borrow?' (after lending 1)':''}`:`${pl}: ${top} ${MINUS} ${y} = ${top-y}${borrow?'（1 かしたあと）':''}`);
+        borrow=0;
+      }
+    }
+  }
+  const ans=op==='+'?a+b:a-b;
+  const width=Math.max(String(a).length,String(b).length,String(ans).length)+1;
+  const cells=(str,lead)=>{const s=String(str).padStart(width-1,' ');return `<td>${lead||''}</td>`+s.split('').map(c=>`<td>${c===' '?'':c}</td>`).join('');};
+  const cr=op==='+'?'<tr class="carry"><td></td>'+carryRow.slice(0,width-1).reverse().map(c=>`<td>${c}</td>`).join('')+'</tr>':'';
+  const tbl=`<table class="vert">${cr}<tr>${cells(a)}</tr><tr>${cells(b,op==='+'?'+':MINUS)}</tr><tr class="sum">${cells(ans)}</tr></table>`;
+  return tbl+steps.map(s=>`<div>${s}</div>`).join('');
+}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function explain(p){
+  const en=L()==='en';
+  switch(p.type){
+    case 'arith':
+      if(p.col)return colExplain(p.a,p.b,p.op);
+      if(p.op==='+'&&p.ans>10&&p.a<10&&p.b<=10&&p.a+p.b>10){const need=10-p.a;
+        return `<div class="visual">${tenFramesSVG(p.a,p.b)}</div>`+(en?`Make a ten! ${p.a} + ${need} = 10, then 10 + ${p.b-need} = ${p.ans}.`:`10を つくろう！ ${p.a} + ${need} = 10、10 + ${p.b-need} = ${p.ans}。`);}
+      if(p.op==='-')return en?`Think addition: ${p.b} + ? = ${p.a}. ${p.b} + ${p.ans} = ${p.a}.`:`たしざんで かんがえよう：${p.b} + ? = ${p.a}。${p.b} + ${p.ans} = ${p.a}。`;
+      return `${p.a} + ${p.b} = ${p.ans}`;
+    case 'arith3':{const s=p.a+p.b;return en?`${p.a} + ${p.b} = ${s}, then ${s} + ${p.c} = ${p.ans}.`:`${p.a} + ${p.b} = ${s}、${s} + ${p.c} = ${p.ans}。`;}
+    case 'missing':return en?`Count up from ${p.a} to ${p.c}: ${p.c} ${MINUS} ${p.a} = ${p.ans}.`:`${p.a} から ${p.c} まで かぞえよう：${p.c} ${MINUS} ${p.a} = ${p.ans}。`;
+    case 'pv_blocks':case 'pv_expanded':{
+      const bits=[];if(p.h)bits.push(en?`${p.h} hundreds = ${p.h*100}`:`ひゃく が ${p.h}こ = ${p.h*100}`);
+      bits.push(en?`${p.t} tens = ${p.t*10}`:`じゅう が ${p.t}こ = ${p.t*10}`);bits.push(en?`${p.o} ones = ${p.o}`:`いち が ${p.o}こ = ${p.o}`);
+      return bits.map(b=>`<div>${b}</div>`).join('')+`<div><b>${en?'Together':'ぜんぶで'}: ${p.ans}</b></div>`;}
+    case 'pv_value':{const pl=PLACE[L()][2-p.pos];return en?`The ${p.d} is in the ${pl} place, so it means ${p.ans}.`:`${p.d} は ${pl} に あるので ${p.ans} を あらわします。`;}
+    case 'pv_compare':return (en?'Compare the hundreds first, then the tens, then the ones. ':'まず 百のくらい、つぎに 十のくらい、さいごに 一のくらいを くらべよう。')+`<div><b>${p.x} ${p.ans} ${p.y}</b></div>`;
+    case 'pv_more':{const pl=Math.abs(p.d)===10?(en?'tens':'十のくらい'):(en?'hundreds':'百のくらい');
+      return en?`${Math.abs(p.d)} ${p.d>0?'more':'less'} changes the ${pl} digit: ${p.n} → ${p.ans}.`:`${pl} の かずが かわるよ：${p.n} → ${p.ans}。`;}
+    case 'coins':{const c=p.coins.slice().sort((a,b)=>b-a);let run=0;const seq=c.map(v=>{run+=v;return run;});
+      return (en?'Start with the biggest coins and count on: ':'おおきい コインから かぞえよう：')+`<div><b>${seq.join(', ')}¢</b></div>`;}
+    case 'change':return `${money(p.have)} ${MINUS} ${money(p.cost)} = ${p.ans}¢`;
+    case 'clock':{const pos=p.m/5||12;
+      return en?`The short hand shows the hour: ${p.h}. The long hand points to the ${pos}${p.m?`, and 5, 10, 15… counting by 5s gives ${p.m} minutes`:', so it is exactly o\'clock'}.`
+               :`みじかい はりは ${p.h}じ。ながい はりは ${pos} を さしているので ${p.m?`5、10、15… と 5ずつ かぞえて ${p.m}ふん`:'ちょうど'}。`;}
+    case 'elapsed':return en?`Start at ${fmtT(p.h,p.m)} and move the long hand ${p.add} minutes: ${p.ans}.`:`${fmtT(p.h,p.m)} から ${p.add}ふん すすめると ${p.ans}。`;
+    case 'word':return wordEq(p);
+    case 'plan':return planWhy(p);
+    case 'pick':return p.why||planWhy(p);
+    case 'multi':case 'hop':return p.why;
+  }
+  return '';
+}
+function planWhy(p){
+  const last=p.plans[p.plans.length-1];
+  let s=p.plans.map(pl=>`<div><b>${eqStr(pl)}</b></div>`).join('');
+  if(last.nums.length===2)s+=colExplain(last.nums[0],last.nums[1],last.op);
+  else{let run=last.nums[0];s+=last.nums.slice(1).map(n=>{const was=run;run+=n;return `<div>${was} + ${n} = ${run}</div>`;}).join('');}
+  return s;
+}
+function ansText(p){
+  if(p.type==='pick'&&p.topic==='cba')return 'ABCD'[p.choices.indexOf(p.ans)];
+  if(p.type==='multi')return p.ans.split('||').map(a=>'ABCD'[p.choices.indexOf(a)]).sort().join(' and ');
+  return typeof p.ans==='number'&&(p.type==='coins'||p.type==='change')?p.ans+'¢':p.ans;
+}
+
+function hint(p){
+  const h=p.topic==='cba'?S.en.hint:T().hint;
+  switch(p.type){
+    case 'plan':{const pl=cur&&cur.p===p?curPlan():p.plans[p.plans.length-1];
+      return pl.nums.length>2?'Add two numbers at a time.':pl.op==='+'?h.colAdd:h.colSub;}
+    case 'pick':case 'multi':case 'hop':return p.hintText||'';
+    case 'arith':if(p.col)return p.op==='+'?h.colAdd:h.colSub;return p.op==='+'?h.makeTen:h.thinkAdd;
+    case 'arith3':return h.three;
+    case 'missing':return h.countUp;
+    case 'coins':return h.coins;
+    case 'change':return h.change;
+    case 'clock':case 'elapsed':return h.clock;
+    case 'word':return h.word;
+  }
+  return h.place;
+}
+
+/* ---------- read aloud ---------- */
+const canSpeak=!!(window.speechSynthesis&&window.SpeechSynthesisUtterance);
+const speechJP=()=>L()==='jp'&&!(cur&&cur.p&&cur.p.topic==='cba');
+function plainSpeech(html){
+  const jp=speechJP();
+  let s=String(html).replace(/<table[\s\S]*?<\/table>/g,' ').replace(/<div class="visual">[\s\S]*?<\/svg><\/div>/g,' ').replace(/<[^>]+>/g,' ').replace(/→/g,', ').replace(/\|/g,', then ').replace(/(^|\s)\? ([+−])/g,'$1what $2');
+  s=s.replace(/ = \?/g,jp?' は いくつ？':' equals what?').replace(/ \+ \? = /g,jp?' たす なにが ':' plus what equals ')
+     .replace(/ \+ /g,jp?' たす ':' plus ').replace(new RegExp(' '+MINUS+' ','g'),jp?' ひく ':' minus ')
+     .replace(/ ○ /g,jp?' まる ':' circle ').replace(/(\d+)¢/g,jp?'$1セント':'$1 cents');
+  return s.replace(/\s+/g,' ').trim();
+}
+function say(text){
+  if(!canSpeak)return;
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(plainSpeech(text));
+    u.lang=speechJP()?'ja-JP':'en-US';u.rate=.9;
+    const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith(u.lang.slice(0,2).toLowerCase()));
+    if(v)u.voice=v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function speakQuestion(){if(!cur)return;const q=qText(cur.p);say(q.speak||(q.t+(q.sub?' '+q.sub:'')));}
+
+/* ---------- talk prompt for grown-ups (parent-child math talk) ---------- */
+function talkPrompt(){
+  const recent=state.last.slice().reverse();
+  const missed=recent.find(x=>!x.first);
+  const it=missed||recent[0];
+  if(!it)return 'Ask your child to show you how Toshi’s walk works, and to teach you one problem.';
+  const p=it.p;
+  switch(p.topic){
+    case 'facts':return p.op==='-'?`Ask: “How could you use adding to solve ${p.a} − ${p.b}?”`:(p.type==='missing'?`Ask: “What goes with ${p.a} to make ${p.c}? How do you know?”`:`Ask: “How can you make a ten to solve ${p.a} + ${p.b}${p.c?' + '+p.c:''}?”`);
+    case 'addsub':return `Ask her to talk you through ${p.a} ${p.op==='-'?'−':'+'} ${p.b} out loud. What happens in the ones place?`;
+    case 'place':return `Write ${p.n||p.ans||p.x} on paper and ask: “What does each digit mean?”`;
+    case 'money':return `Give her real coins and ask her to make ${p.ans}¢ two different ways.`;
+    case 'time':return `At the next clock you pass, ask her what time it is and how she knows from the hands.`;
+    case 'word':return `Ask her to make up her own story for ${wordEq(p).split(' = ')[0]}, using Toshi or someone in the family.`;
+    case 'cba':return p.talk||'Ask her to draw the bar model on paper and explain it to you.';
+  }
+  return 'Ask her what was easy today and what was tricky.';
+}
+
+/* ---------- sound ---------- */
+let actx=null;
+function tone(freqs,dur){
+  if(!state.sound)return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==='suspended')actx.resume();
+    freqs.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type='triangle';o.frequency.value=f;
+      const t0=actx.currentTime+i*dur;g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.18,t0+.02);g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+      o.connect(g);g.connect(actx.destination);o.start(t0);o.stop(t0+dur+.02);});
+  }catch(e){}
+}
+const sfx={ok:()=>tone([660,880],.11),no:()=>tone([300,240],.16),stop:()=>tone([523,659,784,1047],.12),tap:()=>tone([520],.04)};
+
+/* ---------- game logic ---------- */
+function accOf(t){const r=state.topics[t].recent;return r.length?r.reduce((a,b)=>a+b,0)/r.length:.7;}
+const SOLO_READY=8;
+function mixTopics(){
+  const ok=TOPICS.filter(t=>state.topics[t].solo>=SOLO_READY||state.topics[t].lvl>=2);
+  ['facts','addsub'].forEach(t=>{if(ok.length<2&&!ok.includes(t))ok.push(t);});
+  return ok;
+}
+function pickTopic(){
+  const ts=mixTopics();
+  const w=ts.map(t=>1+3*(1-accOf(t)));const sum=w.reduce((a,b)=>a+b,0);
+  let x=Math.random()*sum;for(let i=0;i<ts.length;i++){x-=w[i];if(x<=0)return ts[i];}
+  return ts[0];
+}
+function gen(topic){
+  const lvl=state.topics[topic].lvl;let p;
+  for(let i=0;i<6;i++){p=GEN[topic](lvl);if(!cur||label(p)!==label(cur.p))break;}
+  p.topic=topic;p.lvl=lvl;return p;
+}
+function nextQuestion(){
+  clearTimeout(advanceTimer);
+  state.qCount++;
+  let p=null,review=false;
+  const mixOk=mode==='mix'?mixTopics():null;
+  const due=state.missed.filter(m=>m.due<=state.qCount&&(mode==='mix'?mixOk.includes(m.p.topic):m.p.topic===mode));
+  if(due.length&&Math.random()<.7){p=clone(due[0].p);review=true;}
+  if(!p)p=gen(mode==='mix'?pickTopic():mode);
+  cur={p,tries:0,done:false,input:'',disabled:[],fb:null,review,shownAt:Date.now(),lockUntil:0,pi:0,si:0,fill:[],slotTries:0,stageTries:0,slips:0,opWrong:null,doneEqs:[],sel:[]};
+  renderPlay();
+  if(['word','plan','pick','multi','hop'].includes(p.type)&&state.autoRead!==false)setTimeout(speakQuestion,250);
+}
+/* ---------- CBA plan flow: bar model → add or subtract → solve ---------- */
+const curPlan=()=>cur.p.plans[cur.pi];
+const planStage=()=>cur.p.stages[cur.si];
+const isReveal=()=>!!(cur&&cur.fb&&cur.fb.kind==='reveal');
+function barLeft(pl){const left=pl.parts.slice();cur.fill.slice(1).forEach(v=>{const i=left.indexOf(v);if(i>=0)left.splice(i,1);});return left;}
+function planAdvance(keepFb){
+  const p=cur.p;
+  if(cur.si<p.stages.length-1)cur.si++;
+  else{cur.pi++;cur.si=0;cur.fill=[];}
+  cur.input='';cur.stageTries=0;cur.slotTries=0;cur.opWrong=null;
+  if(!keepFb)cur.fb=null;
+  renderPlay();
+}
+function tapToken(raw){
+  if(!cur||cur.done||planStage()!=='bar')return;
+  const pl=curPlan(),v=raw==='?'?'?':Number(raw),idx=cur.fill.length,slots=pl.parts.length+1;
+  const good=idx===0?v===pl.whole:barLeft(pl).includes(v);
+  if(good){
+    sfx.tap();cur.fill.push(v);cur.slotTries=0;cur.fb=null;
+    if(cur.fill.length===slots)planAdvance();else renderPlay();
+    return;
+  }
+  sfx.no();cur.slotTries++;if(cur.slotTries===1)cur.slips++;
+  const msg=idx===0?'The top of the bar is the WHOLE: all of them together. If the story does not tell you the whole, tap ?':'The parts go together to make the whole. Which number is one part?';
+  if(cur.slotTries>=2){
+    cur.fill.push(idx===0?pl.whole:barLeft(pl)[0]);cur.slotTries=0;
+    cur.fb={kind:'try',msg:'Toshi filled that one in. '+msg};
+    if(cur.fill.length===slots){planAdvance(true);return;}
+  }else cur.fb={kind:'try',msg};
+  renderPlay();
+}
+function tapOp(o){
+  if(!cur||cur.done||planStage()!=='op'||cur.opWrong===o)return;
+  const pl=curPlan();
+  if(o===pl.op){sfx.tap();planAdvance();return;}
+  sfx.no();cur.slips++;cur.opWrong=o;
+  cur.fb={kind:'try',msg:pl.whole==='?'?'The ? is the whole, so put the parts together. Add!':'The ? is a part, so take the part you know away from the whole. Subtract!'};
+  renderPlay();
+}
+function planMidSolve(val){
+  const pl=curPlan();
+  if(Number(val)===pl.res){sfx.ok();cur.doneEqs.push(eqStr(pl));planAdvance();return;}
+  sfx.no();cur.stageTries++;if(cur.stageTries===1)cur.slips++;cur.input='';
+  if(cur.stageTries>=2){cur.doneEqs.push(eqStr(pl));cur.fb={kind:'reveal'};renderPlay();}
+  else{cur.fb={kind:'try',msg:pl.op==='+'?S.en.hint.colAdd:S.en.hint.colSub};renderPlay(true);}
+}
+function barHTML(pl){
+  const active=planStage()==='bar'&&!cur.done?cur.fill.length:-1;
+  const cell=(i,cls)=>{const v=cur.fill[i];return `<div class="${cls} ${i===active?'active':''} ${v==='?'?'q':''}">${v===undefined?'':v}</div>`;};
+  return `<div class="bm" role="img" aria-label="bar model"><div class="bm-top ${0===active?'active':''} ${cur.fill[0]==='?'?'q':''}">${cur.fill[0]===undefined?'':cur.fill[0]}</div><div class="bm-parts">${pl.parts.map((_,i)=>cell(i+1,'bm-part')).join('')}</div></div>`;
+}
+function planPanel(){
+  const p=cur.p,pl=curPlan(),st=planStage(),opS=pl.op==='+'?'+':MINUS;
+  let h='<div class="plan">';
+  if(p.plans.length>1)h+=`<div class="plan-title">Step ${cur.pi+1} of ${p.plans.length}</div>`;
+  h+=cur.doneEqs.filter(()=>!isReveal()).map(e=>`<div class="eq-done">✓ ${e}</div>`).join('');
+  if(p.stages.includes('bar'))h+=barHTML(pl);
+  if(st==='bar'&&!cur.done){
+    const need=cur.fill.length===0?'Plan: tap the number for the top of the bar.':'Now tap the number for this part.';
+    const used=v=>cur.fill.filter(x=>x===v).length>=[pl.whole,...pl.parts].filter(x=>x===v).length&&cur.fill.includes(v);
+    h+=`<div class="plan-title">${need}</div><div class="tokens">${pl.tokens.map(v=>`<button data-token="${v}" ${used(v)?'disabled':''}>${v}</button>`).join('')}</div>`;
+  }else if(st==='op'&&!cur.done){
+    h+=`<div class="plan-title">Add or subtract?</div><div class="eqn">${pl.nums.join(' ○ ')} = ?</div><div class="ops">${['+','-'].map(o=>`<button data-op="${o}" ${cur.opWrong===o?'disabled':''} aria-label="${o==='+'?'add':'subtract'}">${o==='+'?'+':MINUS}</button>`).join('')}</div>`;
+  }else{
+    h+=`<div class="eqn">${pl.nums.join(` ${opS} `)} = ${isReveal()||(cur.done&&cur.fb&&cur.fb.kind==='ok')?pl.res:'?'}</div>`;
+  }
+  return h+'</div>';
+}
+function recordSkill(p,first){
+  if(!p.skill)return;
+  const s=state.cba[p.skill]||(state.cba[p.skill]={n:0,ok:0,r:[]});
+  s.n++;if(first)s.ok++;s.r.push(first?1:0);if(s.r.length>8)s.r.shift();
+}
+let fastWrongs=0;
+function submit(val){
+  if(!cur||cur.done||Date.now()<cur.lockUntil)return;
+  const p=cur.p;
+  if(typeof p.ans==='number'&&String(val)==='')return;
+  if(p.type==='plan'&&cur.pi<p.plans.length-1){planMidSolve(val);return;}
+  const correct=typeof p.ans==='number'?Number(val)===p.ans:val===p.ans;
+  const fast=Date.now()-cur.shownAt<(p.type==='pick'||p.type==='multi'?4000:typeof p.ans==='number'?2500:1500);
+  cur.tries++;
+  if(correct){fastWrongs=0;finish(true,val);return;}
+  fastWrongs=fast?fastWrongs+1:0;
+  sfx.no();
+  if(cur.tries<2){
+    if(typeof p.ans!=='number')cur.disabled.push(val);else cur.input='';
+    if(p.type==='multi')cur.sel=[];
+    if(fastWrongs>=2){
+      fastWrongs=0;cur.fb={kind:'slow'};cur.lockUntil=Date.now()+3000;
+      setTimeout(()=>{if(cur&&cur.fb&&cur.fb.kind==='slow'&&screen==='play'){cur.shownAt=Date.now();renderPlay();}},3050);
+    }else cur.fb={kind:'try'};
+    renderPlay(true);
+  }else finish(false,val);
+}
+function finish(correct,val){
+  const p=cur.p;cur.done=true;cur.picked=val;
+  const first=correct&&cur.tries===1&&!cur.slips;
+  recordSkill(p,first);
+  const TT=state.topics[p.topic];
+  TT.n++;if(first)TT.ok++;
+  TT.recent.push(first?1:0);if(TT.recent.length>8)TT.recent.shift();
+  if(mode!=='mix')TT.solo=(TT.solo||0)+1;
+  state.last.push({p:clone(p),first});if(state.last.length>8)state.last.shift();
+  day.q++;if(first)day.ok++;
+  const bt=day.byTopic[p.topic]||(day.byTopic[p.topic]={q:0,ok:0});bt.q++;if(first)bt.ok++;
+  if(session){session.q++;if(first)session.ok++;}
+  const key=label(p);const mi=state.missed.findIndex(m=>label(m.p)===key);
+  if(!first){
+    state.missCounts[key]=(state.missCounts[key]||0)+1;
+    const ks=Object.keys(state.missCounts);
+    if(ks.length>60){ks.sort((a,b)=>state.missCounts[a]-state.missCounts[b]).slice(0,ks.length-60).forEach(k=>delete state.missCounts[k]);}
+    if(mi<0){state.missed.push({p:clone(p),due:state.qCount+3,hits:0});if(state.missed.length>25)state.missed.shift();}
+    else{state.missed[mi].due=state.qCount+4;state.missed[mi].hits=0;}
+  }else if(mi>=0){
+    const m=state.missed[mi];m.hits++;if(m.hits>=2)state.missed.splice(mi,1);else m.due=state.qCount+8;
+  }
+  let lvlMsg=null;const name=T().topics[p.topic];
+  const r=TT.recent;
+  if(r.length>=7&&r.slice(-7).filter(x=>x===1).length>=6&&r[r.length-1]===1&&TT.lvl<5){TT.lvl++;TT.recent=[];lvlMsg=T().levelUp(name,TT.lvl);}
+  else if(r.length>=4&&r.slice(-4).filter(x=>x===0).length>=3&&TT.lvl>1){TT.lvl--;TT.recent=[];lvlMsg=T().levelDown(name,TT.lvl);}
+  let reached=null;
+  if(correct){
+    state.bones+=first?2:1;state.steps++;
+    if(state.steps%STEPS_PER_STOP===0){
+      const k=state.steps/STEPS_PER_STOP;
+      const lm=LANDMARKS[k%LANDMARKS.length];
+      let item=null,bonus=0;
+      if(k<=ITEMS.length){item=ITEMS[k-1];if(!state.wear.includes(item.id))state.wear.push(item.id);}
+      else{bonus=5;state.bones+=bonus;}
+      reached={lm,item,bonus};
+    }
+  }
+  saveAll();
+  cur.fb={kind:correct?'ok':'no',lvlMsg,praise:pick(T().great)};
+  if(correct)sfx.ok();
+  renderPlay();
+  if(correct){
+    const walker=document.querySelector('.walker .toshi');if(walker){walker.classList.add('wag','hop');}
+    if(reached){setTimeout(()=>showReached(reached),650);}
+    else if(!lvlMsg){advanceTimer=setTimeout(nextQuestion,1300);}
+  }
+}
+
+/* ---------- time tracking ---------- */
+function startSession(){session={t:nowHM(),sec:0,q:0,ok:0};sessionInDay=false;}
+function endSession(){session=null;sessionInDay=false;saveAll();}
+function tick(){
+  const today=todayStr();
+  if(today!==day.date){saveAll();day=daysCache[today]?clone(daysCache[today]):newDay(today);if(session){startSession();}}
+  const active=screen==='play'&&!document.hidden&&Date.now()-lastTap<IDLE_MS&&!document.querySelector('.modal');
+  if(active){
+    day.sec++;
+    if(session){session.sec++;if(!sessionInDay){day.sessions.push(session);sessionInDay=true;}}
+    if(!day.goalHit&&day.sec>=state.goalMin*60){day.goalHit=true;saveAll();showGoal();}
+  }
+  if(active!==wasActive&&!active&&screen==='play')saveAll();
+  wasActive=active;
+  updateClock(active);
+}
+function updateClock(active){
+  const el=document.getElementById('clockmini');if(!el)return;
+  const goal=state.goalMin*60,pct=Math.min(100,day.sec/goal*100);
+  el.querySelector('.now').textContent=T().minOf(Math.floor(day.sec/60),state.goalMin);
+  el.querySelector('.of').textContent=active||screen!=='play'?'':T().paused;
+  el.querySelector('.of').classList.toggle('paused',!active);
+  const m=el.querySelector('.meter');m.classList.toggle('done',day.goalHit);m.querySelector('i').style.width=pct+'%';
+}
+
+/* ---------- rendering ---------- */
+const app=document.getElementById('app'),modalRoot=document.getElementById('modal-root');
+function render(){
+  if(screen==='home')renderHome();
+  else if(screen==='play')renderPlay();
+  else if(screen==='parents')renderParents();
+  else if(screen==='gate')renderGate();
+}
+function lvlDots(l){return `<span class="lvl" aria-label="level ${l}">${[1,2,3,4,5].map(i=>`<i class="${i<=l?'on':''}"></i>`).join('')}</span>`;}
+function weekDays(){
+  const all=Object.assign({},daysCache,{[day.date]:day});
+  const d=new Date();const dow=(d.getDay()+6)%7;d.setDate(d.getDate()-dow);
+  const days=[];let hits=0;const today=todayStr();
+  for(let i=0;i<7;i++){const k=todayStr(d),r=all[k]||{};if(r.goalHit)hits++;
+    days.push({lbl:'MTWTFSS'[i],hit:!!r.goalHit,sec:r.sec||0,today:k===today});d.setDate(d.getDate()+1);}
+  return {days,hits};
+}
+function streak(){
+  const all=Object.assign({},daysCache,{[day.date]:day});
+  let n=0;const d=new Date();
+  if(!(all[todayStr(d)]&&all[todayStr(d)].goalHit))d.setDate(d.getDate()-1);
+  for(;;){const k=todayStr(d);if(all[k]&&all[k].goalHit){n++;d.setDate(d.getDate()-1);}else break;}
+  return n;
+}
+function renderHome(){
+  const t=T(),goal=state.goalMin*60,pct=Math.min(1,day.sec/goal),C=2*Math.PI*52;
+  const left=Math.max(0,Math.ceil((goal-day.sec)/60));const wk=weekDays();const mixOk=mixTopics();
+  const unlocked=Math.min(ITEMS.length,Math.floor(state.steps/STEPS_PER_STOP));
+  app.innerHTML=`
+  <div class="hero card">
+    <div><h1>Toshi's Math Walk</h1><p>${t.sub}</p></div>
+    ${toshiSVG(state.wear,'wag')}
+  </div>
+  <div class="today card">
+    <svg class="ring ${day.goalHit?'done':''}" viewBox="0 0 132 132" role="img" aria-label="${t.minOf(Math.floor(day.sec/60),state.goalMin)}">
+      <circle class="bg" cx="66" cy="66" r="52"/>
+      <circle class="fg" cx="66" cy="66" r="52" stroke-dasharray="${(pct*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 66 66)"/>
+      <text class="big tab-nums" x="66" y="68" text-anchor="middle">${Math.floor(day.sec/60)}</text>
+      <text class="small" x="66" y="90" text-anchor="middle">${t.of(state.goalMin)}</text>
+    </svg>
+    <div>
+      <h2>${day.goalHit?t.todayDone:t.todayLeft(left)}</h2>
+      <div class="stats">
+        <span class="pill tab-nums">${t.bones(state.bones)}</span>
+        ${day.q?`<span class="pill tab-nums">${t.qs(day.q,day.ok)}</span>`:''}
+      </div>
+      <div class="week" aria-label="${t.week(wk.hits)}">${wk.days.map(d=>`<span class="d ${d.hit?'hit':d.sec>0?'part':''} ${d.today?'today':''}">${d.lbl}</span>`).join('')}<span class="lbl">${t.week(wk.hits)}</span></div>
+    </div>
+  </div>
+  <button class="go" data-act="play" data-mode="mix">🐾 ${t.go}</button>
+  <button class="go cba" data-act="play" data-mode="cba">🎯 ${t.topics.cba} ${lvlDots(state.topics.cba.lvl)}</button>
+  <div class="sect-label">${t.pick}</div>
+  <div class="topics">
+    ${TOPICS.filter(k=>k!=='cba').map(k=>`<button class="topic" data-act="play" data-mode="${k}"><span class="ico">${TOPIC_ICO[k]}</span><b>${t.topics[k]}</b>${lvlDots(state.topics[k].lvl)}${mixOk.includes(k)?'':`<span class="newtag">${t.newTag}</span>`}</button>`).join('')}
+  </div>
+  <div class="sect-label">${t.closet}</div>
+  <div class="closet">
+    ${ITEMS.map((it,i)=>i<unlocked
+      ?`<button class="chip ${state.wear.includes(it.id)?'on':''}" data-act="wear" data-id="${it.id}">${it.em} ${it[L()]}</button>`
+      :`<span class="chip locked">🔒 ${LANDMARKS[i+1][L()]}</span>`).join('')}
+  </div>
+  <div class="footer">
+    <button class="linkbtn" data-act="lang">${t.lang}</button>·
+    <button class="linkbtn" data-act="sound">${t.sound(state.sound)}</button>·
+    <button class="linkbtn" data-act="gate">${t.grownups}</button>·
+    <span id="sync">${t.sync[store.sync]}</span>
+  </div>`;
+}
+function renderPlay(keepShake){
+  if(!cur)return;
+  const t=T(),p=cur.p,k=Math.floor(state.steps/STEPS_PER_STOP),inSeg=state.steps%STEPS_PER_STOP;
+  const from=LANDMARKS[k%LANDMARKS.length],to=LANDMARKS[(k+1)%LANDMARKS.length];
+  const shownSteps=cur.done&&cur.fb&&cur.fb.kind==='ok'&&inSeg===0?STEPS_PER_STOP:inSeg;
+  const q=qText(p,cur.done&&cur.fb&&cur.fb.kind==='ok'),isNum=typeof p.ans==='number';
+  const unit=(p.type==='coins'||p.type==='change')?'¢':'';
+  let answer='';
+  const isPlan=p.type==='plan',reveal=isReveal();
+  if(isPlan&&!cur.done&&planStage()!=='solve'){
+    answer=planPanel();
+  }else if(p.type==='multi'){
+    const right=p.ans.split('||');
+    answer=`<div class="choices long">${p.choices.map((c,i)=>{
+      const isR=cur.done&&right.includes(c),on=!cur.done&&cur.sel.includes(c);
+      return `<button data-toggle="${c}" ${cur.done&&!isR?'disabled':''} class="${isR?'right':on?'sel':''}"><span class="ltr">${'ABCD'[i]}</span><span>${c}</span></button>`;}).join('')}</div>
+      ${cur.done?'':`<button class="nextbtn" data-act="multi-check" ${cur.sel.length===2?'':'disabled'}>${t.check}</button>`}`;
+  }else if(isNum){
+    const cls=cur.done&&cur.fb.kind==='ok'?'right':'';
+    answer=`${isPlan?planPanel():''}${reveal?'':`<div class="ansbox ${cls}" id="ansbox">${cur.input?cur.input:'<span class="ph">?</span>'}${unit?`<span>${unit}</span>`:''}</div>`}
+    ${cur.done||reveal?'':`<div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-key="${n}">${n}</button>`).join('')}<button class="del" data-key="del" aria-label="delete">⌫</button><button data-key="0">0</button><button class="check" data-key="ok" aria-label="${t.check}">✓</button></div>`}`;
+  }else{
+    const ch=p.choices;
+    const long=p.topic==='cba';
+    answer=`<div class="choices ${long?'long':ch.length===3?'three':''}">${ch.map((c,i)=>{
+      const right=cur.done&&c===p.ans;
+      return `<button data-choice="${c}" ${cur.disabled.includes(c)||(cur.done&&!right)?'disabled':''} class="${right?'right':''}">${long?`<span class="ltr">${'ABCD'[i]}</span><span>${c.split('|').join('<br>')}</span>`:c}</button>`;}).join('')}</div>`;
+  }
+  let fb='';
+  if(cur.fb){
+    if(cur.fb.kind==='ok')fb=`<div class="fb ok">${cur.fb.praise}${cur.fb.lvlMsg?`<span class="lvlup">${cur.fb.lvlMsg}</span>`:''}</div>`;
+    else if(cur.fb.kind==='try'){const tip=cur.fb.msg||(p.topic==='cba'&&p.lvl<5?hint(p):'');fb=`<div class="fb try">${t.tryAgain}${tip?`<div style="font-weight:400">💡 ${tip}</div>`:''}</div>`;}
+    else if(cur.fb.kind==='reveal'){const pl=curPlan();fb=`<div class="fb no"><div class="ans">${t.answerIs} ${pl.res}</div><div class="explain">${colExplain(pl.nums[0],pl.nums[1],pl.op)}</div></div><button class="nextbtn" data-act="plan-next">${t.next} →</button>`;}
+    else if(cur.fb.kind==='slow')fb=`<div class="fb slow"><b>${t.slow}</b><div>💡 ${hint(p)}</div></div>`;
+    else fb=`<div class="fb no"><div class="row"><div class="ans">${t.answerIs} ${ansText(p)}</div>${canSpeak?`<span class="spacer"></span><button class="speak" data-act="speak-ex">🔊 ${t.listen}</button>`:''}</div><div class="explain">${explain(p)}</div>${cur.fb.lvlMsg?`<span class="lvlup">${cur.fb.lvlMsg}</span>`:''}</div>`;
+  }
+  const needNext=cur.done&&(cur.fb.kind==='no'||cur.fb.lvlMsg);
+  app.innerHTML=`
+  <div class="bar">
+    <button class="homebtn" data-act="home" aria-label="home">🏠</button>
+    <div class="clock-mini" id="clockmini">
+      <div class="lbl"><span class="now tab-nums">${t.minOf(Math.floor(day.sec/60),state.goalMin)}</span><span class="of"></span></div>
+      <div class="meter ${day.goalHit?'done':''}"><i style="width:${Math.min(100,day.sec/(state.goalMin*60)*100)}%"></i></div>
+    </div>
+    <span class="pill tab-nums">${t.bones(state.bones)}</span>
+  </div>
+  <div class="trail">
+    <div class="stop"><span class="em">${from.em}</span>${from[L()]}</div>
+    <div class="path">
+      <div class="paws">${Array.from({length:STEPS_PER_STOP+1},(_,i)=>`<i class="${i<=shownSteps?'on':''}"></i>`).join('')}</div>
+      <div class="walker" style="left:${shownSteps/STEPS_PER_STOP*100}%">${toshiSVG(state.wear)}</div>
+    </div>
+    <div class="stop"><span class="em">${to.em}</span>${to[L()]}</div>
+  </div>
+  <div class="steps-left">${t.stepsLeft(STEPS_PER_STOP-shownSteps||STEPS_PER_STOP,to[L()])}</div>
+  <div class="card qcard">
+    <div class="qhead"><div class="qtopic">${TOPIC_ICO[p.topic]} ${t.topics[p.topic]} · ${t.level(p.lvl)}</div>${canSpeak?`<button class="speak" data-act="speak">🔊 ${t.listen}</button>`:''}</div>
+    ${q.vis?`<div class="visual">${q.vis}</div>`:''}
+    <div class="qtext ${q.words?'words':''}">${q.t}</div>
+    ${q.sub?`<div class="note">${q.sub}</div>`:''}
+    ${answer}
+    ${fb}
+    ${needNext?`<button class="nextbtn" data-act="next">${t.next} →</button>`:''}
+  </div>`;
+  if(keepShake){const b=document.getElementById('ansbox');if(b){b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');}}
+  updateClock(true);
+}
+
+function showModal(html,onClose){
+  modalRoot.innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="card">${html}</div></div>`;
+  const btns=modalRoot.querySelectorAll('[data-m]');
+  btns.forEach(b=>b.addEventListener('click',()=>{const v=b.dataset.m;modalRoot.innerHTML='';onClose&&onClose(v);}));
+  if(btns[0])btns[0].focus();
+}
+function showReached(r){
+  const t=T();sfx.stop();confetti();
+  showModal(`<div class="big-em">${r.lm.em}</div><h2>${t.reached(r.lm[L()])}</h2>
+    ${toshiSVG(state.wear,'wag')}
+    ${r.item?`<div><b>${t.newItem}</b> ${r.item.em} ${r.item[L()]}</div>`:''}
+    ${r.bonus?`<div class="pill">🦴 ${t.bonus(r.bonus)}</div>`:''}
+    <button class="nextbtn" data-m="go">${t.keepWalking} →</button>`,()=>nextQuestion());
+}
+function showGoal(){
+  const t=T();sfx.stop();confetti();
+  const wasAdvancing=!!advanceTimer;clearTimeout(advanceTimer);advanceTimer=null;
+  showModal(`<div class="big-em">🏅</div><h2>${t.goalTitle(state.goalMin)}</h2><p>${t.goalSub}</p>
+    ${toshiSVG(state.wear,'wag')}
+    <div class="row" style="justify-content:center"><button class="nextbtn" data-m="go">${t.keepGoing}</button><button class="linkbtn" data-m="home">${t.takeBreak}</button></div>`,
+    v=>{if(v==='home'){goHome();}else if(wasAdvancing||(cur&&cur.done&&cur.fb&&cur.fb.kind==='ok'&&!cur.fb.lvlMsg))nextQuestion();});
+}
+function confetti(){
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const c=document.createElement('canvas');c.className='confetti';document.body.appendChild(c);
+  const ctx=c.getContext('2d');const W=c.width=innerWidth,H=c.height=innerHeight;
+  const cols=['#FFC83A','#4A965A','#E8604F','#4A82D4','#EE88AE'];
+  const ps=Array.from({length:90},()=>({x:Math.random()*W,y:-20-Math.random()*H*.4,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,r:Math.random()*6.28,s:6+Math.random()*6,c:pick(cols)}));
+  let f=0;(function loop(){ctx.clearRect(0,0,W,H);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.1;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();});
+    if(++f<150)requestAnimationFrame(loop);else c.remove();})();
+}
+
+/* ---------- grown-ups ---------- */
+let gateQ=null,confirmReset=false,paperSet=null,paperShow=false;
+function coinWords(coins){const n={25:'quarter',10:'dime',5:'nickel',1:'penny'},pl={25:'quarters',10:'dimes',5:'nickels',1:'pennies'};
+  return [25,10,5,1].map(v=>{const k=coins.filter(c=>c===v).length;return k?`${k} ${k===1?n[v]:pl[v]}`:'';}).filter(Boolean).join(', ');}
+function paperItem(p){
+  const op=p.op==='-'?'−':'+';
+  switch(p.type){
+    case 'arith':return {q:`${p.a} ${op} ${p.b} = ____`,a:p.ans};
+    case 'arith3':return {q:`${p.a} + ${p.b} + ${p.c} = ____`,a:p.ans};
+    case 'missing':return {q:`${p.a} + ____ = ${p.c}`,a:p.ans};
+    case 'pv_blocks':return {q:`Write the number: ${p.h?p.h+(p.h===1?' hundred, ':' hundreds, '):''}${p.t} ${p.t===1?'ten':'tens'}, ${p.o} ${p.o===1?'one':'ones'}`,a:p.ans};
+    case 'pv_expanded':return {q:`${p.h*100} + ${p.t*10} + ${p.o} = ____`,a:p.ans};
+    case 'pv_value':return {q:`What is the value of the ${p.d} in ${p.n}?`,a:p.ans};
+    case 'pv_compare':return {q:`Write <, > or =:  ${p.x} ____ ${p.y}`,a:p.ans};
+    case 'pv_more':return {q:`What is ${Math.abs(p.d)} ${p.d>0?'more':'less'} than ${p.n}?`,a:p.ans};
+    case 'coins':return {q:`How much money? ${coinWords(p.coins)}`,a:p.ans+'¢'};
+    case 'change':return {q:`You have ${money(p.have)}. A toy costs ${money(p.cost)}. How much is left?`,a:p.ans+'¢'};
+    case 'clock':return {q:`Draw a clock that shows ${p.ans}.`,a:'check the hands'};
+    case 'elapsed':return {q:`It is ${fmtT(p.h,p.m)}. What time will it be in ${p.add===60?'1 hour':p.add+' minutes'}?`,a:p.ans};
+    case 'word':return {q:wordText(p,'en'),a:p.ans};
+    case 'plan':return {q:p.text+' <i>Draw a bar model, write an equation, and solve.</i>',a:p.plans.map(eqStr).join(', then ')};
+    case 'pick':return {q:p.prompt+' '+p.choices.map((c,i)=>`<b>${'ABCD'[i]}.</b> ${c.split('|').join(', then ')}`).join(' '),a:'ABCD'[p.choices.indexOf(p.ans)]};
+    case 'multi':return {q:p.prompt+' '+p.choices.map((c,i)=>`<b>${'ABCD'[i]}.</b> ${c}`).join(' '),a:p.ans.split('||').map(a=>'ABCD'[p.choices.indexOf(a)]).sort().join(' and ')};
+    case 'hop':return {q:`Draw a number line and add up from ${p.b} to ${p.a}: ${p.a} − ${p.b} = ____`,a:p.ans};
+  }
+  return {q:'?',a:''};
+}
+function makePaper(){const out=[];TOPICS.forEach(t=>{for(let i=0;i<2;i++){const p=GEN[t](state.topics[t].lvl);p.topic=t;out.push(paperItem(p));}});return out;}
+function renderGate(){
+  gateQ=gateQ||{a:R(6,9),b:R(6,9)};
+  app.innerHTML=`<div class="bar"><button class="homebtn" data-act="home" aria-label="home">🏠</button><h2 style="font-size:22px">Grown-ups</h2></div>
+  <div class="card gate">
+    <p>Grown-ups only. What is <b>${gateQ.a} × ${gateQ.b}</b>?</p>
+    <form id="gateform" class="row" style="justify-content:center"><input id="gatein" inputmode="numeric" autocomplete="off" aria-label="answer"><button class="nextbtn" type="submit">Open</button></form>
+    <p class="note" id="gatemsg"></p>
+  </div>`;
+  const f=document.getElementById('gateform');
+  f.addEventListener('submit',e=>{e.preventDefault();const v=Number(document.getElementById('gatein').value);
+    if(v===gateQ.a*gateQ.b){gateQ=null;screen='parents';render();}else{document.getElementById('gatemsg').textContent='Not quite. Try again.';}});
+  setTimeout(()=>{const i=document.getElementById('gatein');if(i)i.focus();},50);
+}
+function accPill(ok,n){if(!n)return '<span class="acc n">—</span>';const a=Math.round(ok/n*100);return `<span class="acc ${a>=80?'g':a>=60?'y':'r'}">${a}%</span>`;}
+function renderParents(){
+  const all=Object.assign({},daysCache,{[day.date]:day});
+  const goal=state.goalMin;
+  const days14=[];const d=new Date();d.setDate(d.getDate()-13);
+  for(let i=0;i<14;i++){const k=todayStr(d);days14.push({k,dd:d.getDate(),dow:'SMTWTFS'[d.getDay()],min:((all[k]&&all[k].sec)||0)/60,hit:!!(all[k]&&all[k].goalHit)});d.setDate(d.getDate()+1);}
+  const week=days14.slice(-7).reduce((a,b)=>a+b.min,0);
+  const daysMet7=days14.slice(-7).filter(x=>x.hit).length;
+  // chart
+  const W=640,H=220,padL=34,padB=34,padT=14,cw=W-padL-10,ch=H-padB-padT;
+  const maxV=Math.max(goal*1.5,...days14.map(x=>x.min));const top=Math.ceil(maxV/5)*5;
+  const y=v=>padT+ch-(v/top)*ch;const bw=cw/14;
+  let svg=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Minutes per day, last 14 days">`;
+  [0,Math.round(top/2),top].forEach(v=>{svg+=`<line class="grid" x1="${padL}" x2="${W-10}" y1="${y(v)}" y2="${y(v)}"/><text x="${padL-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;});
+  days14.forEach((x,i)=>{const bx=padL+i*bw+bw*.18,w=bw*.64,h=Math.max(0,ch-(y(x.min)-padT));
+    if(x.min>0)svg+=`<rect class="bar ${x.hit?'hit':''}" x="${bx}" y="${y(x.min)}" width="${w}" height="${h}" rx="4"><title>${x.k}: ${x.min.toFixed(1)} min</title></rect>`;
+    svg+=`<text x="${bx+w/2}" y="${H-18}" text-anchor="middle">${x.dd}</text><text x="${bx+w/2}" y="${H-4}" text-anchor="middle">${x.dow}</text>`;});
+  svg+=`<line class="goal" x1="${padL}" x2="${W-10}" y1="${y(goal)}" y2="${y(goal)}"/><text class="gl" x="${W-12}" y="${y(goal)-6}" text-anchor="end">goal ${goal} min</text></svg>`;
+  // sessions
+  const sess=[];Object.keys(all).sort().reverse().forEach(k=>{(all[k].sessions||[]).slice().reverse().forEach(s=>{if(sess.length<12)sess.push(Object.assign({date:k},s));});});
+  const misses=Object.entries(state.missCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const lvlTopic=TOPICS.map(k=>{const tp=state.topics[k];const today=day.byTopic[k]||{q:0,ok:0};return {k,tp,today};});
+  app.innerHTML=`
+  <div class="bar"><button class="homebtn" data-act="home" aria-label="home">🏠</button><h2 style="font-size:24px">Grown-ups</h2><span class="spacer"></span><span class="note" id="sync">${S.en.sync[store.sync]}</span></div>
+  <div class="kpis">
+    <div class="kpi"><div class="v">${mmss(day.sec)}</div><div class="k">today · goal ${goal} min${day.goalHit?' ✓':''}</div></div>
+    <div class="kpi"><div class="v">${Math.round(week)}</div><div class="k">minutes, last 7 days</div></div>
+    <div class="kpi"><div class="v">${daysMet7}/7</div><div class="k">days goal met</div></div>
+    <div class="kpi"><div class="v">${day.q?Math.round(day.ok/day.q*100)+'%':'—'}</div><div class="k">first-try right today (${day.q} q)</div></div>
+  </div>
+  <div class="card dash"><h2>Talk about it</h2><div class="talk">${talkPrompt()}</div><p class="note">Based on her latest walk. In a study of first graders, a few minutes of math talk with a parent each week was the biggest proven lever, more than any app.</p></div>
+  <div class="card dash"><h2>Minutes per day</h2>${svg}<p class="note">Green bars hit the daily goal. Time counts only while a question screen is open and she has tapped in the last 90 seconds.</p></div>
+  <div class="card dash"><h2>Sessions</h2>
+    ${sess.length?`<div class="tbl-wrap"><table class="t"><thead><tr><th>Date</th><th>Start</th><th>Minutes</th><th>Questions</th><th>First-try right</th></tr></thead><tbody>
+    ${sess.map(s=>`<tr><td>${s.date.slice(5)}</td><td>${s.t}</td><td>${(s.sec/60).toFixed(1)}</td><td>${s.q}</td><td>${accPill(s.ok,s.q)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="empty">No sessions yet. Each walk shows up here with its start time and minutes.</p>'}
+  </div>
+  <div class="card dash"><h2>Topics</h2><div class="tbl-wrap"><table class="t"><thead><tr><th>Topic</th><th>Level</th><th>All-time</th><th>Today</th><th>Last 8</th></tr></thead><tbody>
+    ${lvlTopic.map(({k,tp,today})=>`<tr><td>${TOPIC_ICO[k]} ${S.en.topics[k]}</td><td>${lvlDots(tp.lvl)}</td><td>${accPill(tp.ok,tp.n)} <span class="note">${tp.n} q</span></td><td>${accPill(today.ok,today.q)}</td><td><span class="dots">${tp.recent.map(x=>`<i class="${x?'y':'n'}"></i>`).join('')}</span></td></tr>`).join('')}
+  </tbody></table></div><p class="note">Levels go up after 6 of the last 7 are right on the first try (about 85%) and down after 3 misses in 4. Missed problems come back a few questions later until she gets them right twice. Mixed walk only uses topics she has practiced on their own (8 questions) or already leveled up.</p></div>
+  <div class="card dash"><h2>CBA #3 Review, by problem type</h2><div class="tbl-wrap"><table class="t"><thead><tr><th>Sheet #</th><th>Problem type</th><th>First-try right</th><th>Last 8</th></tr></thead><tbody>
+    ${CBA_SKILLS.map(s=>{const r=state.cba[s.id]||{n:0,ok:0,r:[]};return `<tr><td>${s.q}</td><td>${s.name}</td><td>${accPill(r.ok,r.n)} <span class="note">${r.n} q</span></td><td><span class="dots">${r.r.map(x=>`<i class="${x?'y':'n'}"></i>`).join('')}</span></td></tr>`;}).join('')}
+  </tbody></table></div><p class="note">First-try right means no mistakes on the bar, the add-or-subtract choice, or the answer. Weak types come up twice as often. Levels 1 to 3 have her build the bar model. Level 4 drops the bar. Level 5 is test style: multiple choice with no hints.</p></div>
+  <div class="card dash paper"><h2>Paper check</h2>
+    <p class="note">${state.paperAt?`Last check: ${todayStr(new Date(state.paperAt))}.`:'No paper check yet.'} Once a month, have her do these with pencil and paper, away from the screen. Progress in the app is not the same as understanding.</p>
+    ${paperSet?`<ol>${paperSet.map(x=>`<li>${x.q}${paperShow?`<span class="a">${x.a}</span>`:''}</li>`).join('')}</ol>
+      <div class="row" style="margin-top:12px"><button class="linkbtn" data-act="paper-ans">${paperShow?'Hide answers':'Show answers'}</button><button class="linkbtn" data-act="paper-new">New set</button></div>`
+      :`<button class="nextbtn" data-act="paper-new">Make ${TOPICS.length*2} problems</button>`}
+  </div>
+  <div class="card dash"><h2>Trouble spots</h2>
+    ${misses.length?`<div class="tbl-wrap"><table class="t"><thead><tr><th>Problem</th><th>Times missed</th></tr></thead><tbody>${misses.map(([k,n])=>`<tr><td>${k}</td><td>${n}</td></tr>`).join('')}</tbody></table></div>`:'<p class="empty">Nothing missed yet.</p>'}
+  </div>
+  <div class="card dash"><h2>Settings</h2>
+    <div class="row"><span>Daily goal</span><span class="seg">${[10,15,20,30].map(m=>`<button data-act="goal" data-min="${m}" class="${m===goal?'on':''}">${m} min</button>`).join('')}</span></div>
+    <div class="row" style="margin-top:12px"><span>Read story problems aloud automatically</span><span class="seg"><button data-act="autoread" data-v="1" class="${state.autoRead!==false?'on':''}">On</button><button data-act="autoread" data-v="0" class="${state.autoRead===false?'on':''}">Off</button></span></div>
+    <div class="row" style="margin-top:12px"><span>Language</span><span class="seg"><button data-act="setlang" data-l="en" class="${L()==='en'?'on':''}">English</button><button data-act="setlang" data-l="jp" class="${L()==='jp'?'on':''}">にほんご</button></span></div>
+    <div class="row" style="margin-top:16px">${confirmReset
+      ?`<span>Reset levels, bones, steps and Toshi's items? Time history stays.</span><button class="danger" data-act="reset-yes">Yes, reset</button><button class="linkbtn" data-act="reset-no">Cancel</button>`
+      :`<button class="danger" data-act="reset">Reset progress…</button>`}</div>
+  </div>`;
+}
+
+/* ---------- navigation + events ---------- */
+function goHome(){
+  clearTimeout(advanceTimer);try{canSpeak&&speechSynthesis.cancel();}catch(e){}
+  const s=screen==='play'?session:null;
+  if(screen==='play')endSession();
+  screen='home';cur=null;modalRoot.innerHTML='';render();
+  if(s&&s.q>=3)showWalkDone(s);
+}
+function showWalkDone(s){
+  const t=T();
+  showModal(`<div class="big-em">🐾</div><h2>${t.walkDone}</h2><p>${t.walkSub(s.q,s.ok)}</p>${toshiSVG(state.wear,'wag')}
+    <div style="align-self:stretch;text-align:left"><b>${t.showGrownup}</b><div class="talk" style="margin-top:6px">${talkPrompt()}</div></div>
+    <button class="nextbtn" data-m="ok">${t.ok}</button>`);
+}
+function startPlay(m){mode=m;screen='play';startSession();cur=null;nextQuestion();}
+
+document.addEventListener('pointerdown',()=>{lastTap=Date.now();},true);
+document.addEventListener('keydown',e=>{
+  lastTap=Date.now();
+  if(screen!=='play'||!cur||document.querySelector('.modal')||e.target.tagName==='INPUT')return;
+  if(cur.done){if(e.key==='Enter'&&document.querySelector('[data-act="next"]'))nextQuestion();return;}
+  const p=cur.p;
+  if(isReveal()){if(e.key==='Enter')planAdvance();return;}
+  if(p.type==='plan'&&planStage()!=='solve')return;
+  if(p.type==='multi'){const i=Number(e.key)-1;if(i>=0&&i<p.choices.length)toggleSel(p.choices[i]);else if(e.key==='Enter'&&cur.sel.length===2)submit(cur.sel.slice().sort().join('||'));return;}
+  if(typeof p.ans==='number'){
+    if(/^[0-9]$/.test(e.key))pressKey(e.key);else if(e.key==='Backspace')pressKey('del');else if(e.key==='Enter')pressKey('ok');
+  }else{const i=Number(e.key)-1;if(i>=0&&i<p.choices.length&&!cur.disabled.includes(p.choices[i]))submit(p.choices[i]);}
+});
+function toggleSel(c){
+  if(!cur||cur.done||Date.now()<cur.lockUntil)return;
+  const i=cur.sel.indexOf(c);
+  if(i>=0)cur.sel.splice(i,1);else{if(cur.sel.length>=2)cur.sel.shift();cur.sel.push(c);}
+  if(cur.fb&&cur.fb.kind==='try')cur.fb=null;
+  sfx.tap();renderPlay();
+}
+function pressKey(k){
+  if(!cur||cur.done||Date.now()<cur.lockUntil||isReveal())return;
+  if(k==='del')cur.input=cur.input.slice(0,-1);
+  else if(k==='ok'){submit(cur.input);return;}
+  else if(cur.input.length<4)cur.input=(cur.input==='0'?'':cur.input)+k;
+  if(cur.fb&&cur.fb.kind==='try')cur.fb=null;
+  const b=document.getElementById('ansbox');
+  if(b){const unit=(cur.p.type==='coins'||cur.p.type==='change')?'<span>¢</span>':'';b.innerHTML=(cur.input||'<span class="ph">?</span>')+unit;}
+  const f=document.querySelector('.fb.try');if(f&&!cur.fb)f.remove();
+}
+app.addEventListener('click',e=>{
+  const key=e.target.closest('[data-key]');if(key){sfx.tap();pressKey(key.dataset.key);return;}
+  const ch=e.target.closest('[data-choice]');if(ch&&!ch.disabled){submit(ch.dataset.choice);return;}
+  const tk=e.target.closest('[data-token]');if(tk&&!tk.disabled){tapToken(tk.dataset.token);return;}
+  const opb=e.target.closest('[data-op]');if(opb&&!opb.disabled){tapOp(opb.dataset.op);return;}
+  const tg=e.target.closest('[data-toggle]');if(tg&&!tg.disabled){toggleSel(tg.dataset.toggle);return;}
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const a=b.dataset.act;
+  if(a==='play')startPlay(b.dataset.mode);
+  else if(a==='home')goHome();
+  else if(a==='next')nextQuestion();
+  else if(a==='plan-next')planAdvance();
+  else if(a==='multi-check'){if(cur&&cur.sel.length===2)submit(cur.sel.slice().sort().join('||'));}
+  else if(a==='lang'){state.lang=L()==='en'?'jp':'en';saveAll();render();}
+  else if(a==='setlang'){state.lang=b.dataset.l;saveAll();render();}
+  else if(a==='sound'){state.sound=!state.sound;saveAll();render();}
+  else if(a==='gate'){screen='gate';render();}
+  else if(a==='wear'){const id=b.dataset.id;const i=state.wear.indexOf(id);if(i>=0)state.wear.splice(i,1);else state.wear.push(id);saveAll();render();}
+  else if(a==='goal'){state.goalMin=Number(b.dataset.min);day.goalHit=day.sec>=state.goalMin*60;saveAll();render();}
+  else if(a==='reset'){confirmReset=true;render();}
+  else if(a==='reset-no'){confirmReset=false;render();}
+  else if(a==='speak')speakQuestion();
+  else if(a==='speak-ex'){if(cur)say(String(ansText(cur.p))+'. '+explain(cur.p));}
+  else if(a==='paper-new'){paperSet=makePaper();paperShow=false;state.paperAt=Date.now();saveAll();render();}
+  else if(a==='paper-ans'){paperShow=!paperShow;render();}
+  else if(a==='autoread'){state.autoRead=b.dataset.v==='1';saveAll();render();}
+  else if(a==='reset-yes'){const keep={lang:state.lang,sound:state.sound,goalMin:state.goalMin,autoRead:state.autoRead,paperAt:state.paperAt};state=Object.assign(defaultState(),keep);confirmReset=false;saveAll();render();}
+});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveAll();});
+window.addEventListener('pagehide',()=>saveAll());
+
+render();
+setInterval(tick,1000);
+initDb();
+})();
+</script>
